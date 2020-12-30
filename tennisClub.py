@@ -34,7 +34,7 @@ def connect_to_db(): #Για να συνεδέεται στη βάση μας
 
 
 
-def insert_gipedo(): #prosthiki ylikou
+def insert_gipedo(): #prosthiki gipedoy
     global curs,con
     while (True):
         try:
@@ -52,6 +52,35 @@ def insert_gipedo(): #prosthiki ylikou
             print("Αδυναμία προσθήκης γηπέδου!")
             return
 
+def kratisi():
+    while True:
+        ans =input('Για να κάνει κράτηση ένα άτομο πατήστε 1\nΓια έξοδο πατήστε κενό και μετά enter\n')#Μετά να δούμε αν θέλουμε και άλλα εδώ
+        if ans=='1':
+            kratisi_atomo()
+        if ans==' ':
+            return
+
+def kratisi_atomo():# Θέλει βελτίωση
+    global curs,con
+    ans = input("Βάλτε εδώ τον ΑΜΚΑ, το τηλέφωνο ή το Επώνυμο του Πάικτη.")
+    if (ans.isdigit()): # Εδώ ελέγχω αν είναι νούμερο ή γράμματα. Ώστε να ξέρω τι μου δίνει, αν μου δίνει όνομα ή κάτι με νούμερα
+        #Εχω κάτι με νούμερα. Πρέπει να ελέξω αν είναι ΑΜΚΑ ή τηλέφωνο. Αρα αν είναι 11 ή 10 ψηφία
+        if (len(str(ans)) == 11):#Αυτό είναι το μέγεθος του ΑΜΚΑ
+            curs.execute("SELECT * FROM `atomo` WHERE AMKA='"+ans+"';")
+            result=curs.fetchone()
+            print(result)
+        elif(len(str(ans)) == 10):#Αυτό είναι το μέγεθος του τηλεφώνου
+            curs.execute("SELECT * FROM `atomo` WHERE Tilefono='"+ans+"';")
+            result=curs.fetchall()
+            print(result)
+    else:
+        #Εχω όνομα αρα κάνω αντίστοιχο query
+        eponimo= ans
+        curs.execute("SELECT * FROM `atomo` WHERE Eponimo='"+eponimo+"';")
+        result=curs.fetchall()
+        print(result)
+    exit()
+
 def view_gipedo(): # Αυτό απλώς εκτυπώνει τα γήπεδα πρέπει να γίνει πιο όμορφη παρουσιασή του πχ σαν πίνακα
     global curs,con
     print("Αυτά είναι τα γήπεδα μας")
@@ -64,11 +93,13 @@ def view_gipedo(): # Αυτό απλώς εκτυπώνει τα γήπεδα π
 def menu(): #Σε αυτό το μενού πρέπει να σχεδιάσουμε τις επιλογές
     print('Καλησπέρα!\n')
     while True:
-        ans =input('Για να προσθέσετε γήπεδο πατήστε....1\nΓια να δείτε όλα τα γήπεδα μας πατήστε 2\nΓια έξοδο πατήστε κενό και μετά enter\n')
+        ans =input('Για να προσθέσετε γήπεδο πατήστε....1\nΓια να δείτε όλα τα γήπεδα μας πατήστε 2\nΓια να κάνετε καινούργια κράτηση πατήστε το 4\nΓια έξοδο πατήστε κενό και μετά enter\n')
         if ans=='1':
             insert_gipedo()
         if ans=='2':
             view_gipedo()
+        if ans=='4':
+            kratisi()
         if ans==' ':
             return
 
