@@ -115,26 +115,55 @@ def kratisi_atomo():# Θέλει βελτίωση
         print(result)
     exit()
 
-def view_gipedo(): # Αυτό απλώς εκτυπώνει τα γήπεδα πρέπει να γίνει πιο όμορφη παρουσιασή του πχ σαν πίνακα
+def view_gipedo(mode): # Αυτό απλώς εκτυπώνει τα γήπεδα πρέπει να γίνει πιο όμορφη παρουσιασή του πχ σαν πίνακα
     global curs,con
-    print("Αυτά είναι τα γήπεδα μας")
-    curs.execute("SELECT * FROM `gipedo`")
+    
+    if (mode==1):
+        print("Αυτά είναι όλα τα γήπεδα μας")
+        curs.execute("SELECT * FROM `gipedo`")
+    elif (mode==2):
+        print("Αυτά είναι όλα τα διαθέσιμα γήπεδα μας")
+        curs.execute("SELECT * FROM `gipedo` WHERE Texn_Diathesimotita = '1'")        
     result=curs.fetchall()
 
     for i in result:
         print(i)
 
+
+def gipedo_menu():
+    
+    while True:
+        print('Για να δείτε όλα τα γήπεδα μας πατήστε 1\nΓια να δείτε τα διαθέσιμα γήπεδα πατήστε 2')
+        print('Για να προσθέσετε γήπεδο πατήστε 3\nΓια να αλλάξετε την διαθεσιμότητα ενος γηπέδου πατήστε 4')
+        print('Για επιστροφή στο αρχικό μενού πατήστε κενό και μετά enter')
+        ans =input()
+                   
+        if ans=='1':
+            view_gipedo(1)
+        if ans=='2':
+            view_gipedo(2)
+        if ans=='3':
+            insert_gipedo()
+        if ans==' ':
+            return
+
+
+
+    
+
 def menu(): #Σε αυτό το μενού πρέπει να σχεδιάσουμε τις επιλογές
     print('Καλησπέρα!\n')
     while True:
-        ans =input('Για να προσθέσετε γήπεδο πατήστε....1\nΓια να δείτε όλα τα γήπεδα μας πατήστε 2\nΓια να προσθέσετε παίκτη η προπονητή πατήστε 3\nΓια να κάνετε καινούργια κράτηση πατήστε το 4\nΓια έξοδο πατήστε κενό και μετά enter\n')
+        print('Για να διαχειρηστείτε τα γήπεδα παρήστε....1')
+        print('Για να προσθέσετε παίκτη η προπονητή πατήστε 2\nΓια να κάνετε καινούργια κράτηση πατήστε το 3')
+        print('Για έξοδο πατήστε κενό και μετά enter\n')
+        ans =input()
+                   
         if ans=='1':
-            insert_gipedo()
+            gipedo_menu()
         if ans=='2':
-            view_gipedo()
-        if ans=='3':
             insert_atomo()
-        if ans=='4':
+        if ans=='3':
             kratisi()
         if ans==' ':
             return
