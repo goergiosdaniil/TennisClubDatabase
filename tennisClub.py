@@ -33,25 +33,6 @@ def connect_to_db(): #Για να συνεδέεται στη βάση μας
         exit()
 
 
-
-def insert_gipedo(): #prosthiki gipedoy
-    global curs,con
-    while (True):
-        try:
-            gipedo_onoma= input('Πως λέγεται το γήπεδο;\n')
-            gipedo_eidos = input('Τι είδους είναι το γήπεδο;\n')
-            gipedo_texn_diath = input('To γήπεδο είναι τεχν διαθέσιμο 0 ή 1 :\n')
-            insert = "INSERT INTO gipedo(Id,Eidos,Onoma,Texn_Diathesimotita) VALUES(NULL,'"+gipedo_eidos+"','"+gipedo_onoma+"','"+gipedo_texn_diath+"');"
-            curs.execute(insert)
-            con.commit()
-            ans = input('Θες να προσθέσουμε κάποιο άλλο γήπεδο; Αν ναι πατήστε 1, αλλιώς πατήστε κενό και μετά enter για επιστροφή στο αρχικό μενού!\n')
-            if (ans!='1'):
-                print('Εγινε η προσθήκη')
-                return
-        except:
-            print("Αδυναμία προσθήκης γηπέδου!")
-            return
-
 def insert_atomo(): #prosthiki ylikou
     global curs,con
     while (True):
@@ -115,6 +96,27 @@ def kratisi_atomo():# Θέλει βελτίωση
         print(result)
     exit()
 
+####################################################################################################################################################
+
+def insert_gipedo(): #prosthiki gipedoy
+    global curs,con
+    while (True):
+        try:
+            gipedo_onoma= input('Πως λέγεται το γήπεδο;\n')
+            gipedo_eidos = input('Τι είδους είναι το γήπεδο;\n')
+            gipedo_texn_diath = input('To γήπεδο είναι τεχν διαθέσιμο 0 ή 1 :\n')
+            insert = "INSERT INTO gipedo(Id,Eidos,Onoma,Texn_Diathesimotita) VALUES(NULL,'"+gipedo_eidos+"','"+gipedo_onoma+"','"+gipedo_texn_diath+"');"
+            curs.execute(insert)
+            con.commit()
+            ans = input('Θες να προσθέσουμε κάποιο άλλο γήπεδο; Αν ναι πατήστε 1, αλλιώς πατήστε κενό και μετά enter για επιστροφή στο αρχικό μενού!\n')
+            if (ans!='1'):
+                print('Εγινε η προσθήκη')
+                return
+        except:
+            print("Αδυναμία προσθήκης γηπέδου!")
+            return
+
+
 def view_gipedo(mode): # Αυτό απλώς εκτυπώνει τα γήπεδα πρέπει να γίνει πιο όμορφη παρουσιασή του πχ σαν πίνακα
     global curs,con
     
@@ -130,6 +132,19 @@ def view_gipedo(mode): # Αυτό απλώς εκτυπώνει τα γήπεδ�
         print(i)
 
 
+def alter_gipedo():
+    global curs,con
+    ids = input('Εισάγετε τα ID των γηπέδων των οποίων θα θέλατε να αλλάξετε την διαθεσημότητα, χωρισμένα ανα κενό:\n').split()
+    for i in ids:
+        curs.execute("SELECT Texn_Diathesimotita FROM `gipedo` WHERE Id = "+i)
+        old_d=curs.fetchall();
+        new_d = str(int(not old_d[0][0]));
+        curs.execute("UPDATE`gipedo` SET Texn_Diathesimotita = '"+new_d+"' WHERE Id = "+i)
+    curs.commit()
+        
+    
+        
+
 def gipedo_menu():
     
     while True:
@@ -144,12 +159,44 @@ def gipedo_menu():
             view_gipedo(2)
         if ans=='3':
             insert_gipedo()
+        if ans=='4':
+            alter_gipedo()
+        if ans==' ':
+            return
+        
+####################################################################################################################################################
+
+
+def view_group(): # Αυτό απλώς εκτυπώνει τα γήπεδα πρέπει να γίνει πιο όμορφη παρουσιασή του πχ σαν πίνακα
+    global curs,con
+    
+    print("Αυτά είναι όλα τα γγκρούπ μας")
+    curs.execute("SELECT * FROM `group_Ekmathisis`")   
+    result=curs.fetchall()
+
+    for i in result:
+        print(i)
+
+
+
+
+
+def group_menu():
+    
+    while True:
+        print('Για να δείτε όλα τα γκρούπ πατήστε 1\nΓια να προσθέσετε νέο γκρούπ εκμάθησης πατήστε 2')
+        ans =input()
+                   
+        if ans=='1':
+            view_group()
+##        if ans=='2':
+##            insert_group()
         if ans==' ':
             return
 
 
 
-    
+####################################################################################################################################################   
 
 def menu(): #Σε αυτό το μενού πρέπει να σχεδιάσουμε τις επιλογές
     print('Καλησπέρα!\n')
