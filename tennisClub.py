@@ -84,33 +84,62 @@ def view_atomo(a_type): #Για να εμφανίζονται είτε οι πρ
 
         
 
-def kratisi():
-    while True:
-        ans =input('Για να κάνει κράτηση ένα άτομο πατήστε 1\nΓια έξοδο πατήστε κενό και μετά enter\n')#Μετά να δούμε αν θέλουμε και άλλα εδώ
-        if ans=='1':
-            kratisi_atomo()
-        if ans==' ':
-            return
 
-def kratisi_atomo():# Θέλει βελτίωση
+def kratisi():# Θέλει βελτίωση
     global curs,con
-    ans = input("Βάλτε εδώ τον ΑΜΚΑ, το τηλέφωνο ή το Επώνυμο του Πάικτη.")
+    ans = input("Βάλτε εδώ τον ΑΜΚΑ, το τηλέφωνο ή το Επώνυμο του Παίκτη.")
     if (ans.isdigit()): # Εδώ ελέγχω αν είναι νούμερο ή γράμματα. Ώστε να ξέρω τι μου δίνει, αν μου δίνει όνομα ή κάτι με νούμερα
         #Εχω κάτι με νούμερα. Πρέπει να ελέξω αν είναι ΑΜΚΑ ή τηλέφωνο. Αρα αν είναι 11 ή 10 ψηφία
         if (len(str(ans)) == 11):#Αυτό είναι το μέγεθος του ΑΜΚΑ
             curs.execute("SELECT * FROM `atomo` WHERE AMKA='"+ans+"';")
             result=curs.fetchone()
+            print(ans)
             print(result)
         elif(len(str(ans)) == 10):#Αυτό είναι το μέγεθος του τηλεφώνου
             curs.execute("SELECT * FROM `atomo` WHERE Tilefono='"+ans+"';")
             result=curs.fetchall()
-            print(result)
+            print(result[0][0])
     else:
         #Εχω όνομα αρα κάνω αντίστοιχο query
-        eponimo= ans
+        eponimo= ans.capitalize()
         curs.execute("SELECT * FROM `atomo` WHERE Eponimo='"+eponimo+"';")
-        result=curs.fetchall()
-        print(result)
+        print(eponimo) 
+        results=curs.fetchall()
+        if (len(results) == 0):
+            print("Δεν υπάρχει παίκτης με αυτό το όνομα. ")
+            kratisi()
+            exit()
+        elif (len(results) == 1):
+            print("Ο παίκτης είναι: ")
+            print(results[0][1],results[0][2])
+            inp = input("Σωστό. Ν(αι) ή Ο(χι): ")
+            if (inp == "Ν" or inp == "N"):#greek or engilsh
+                amka = results[0][0]
+                print(amka)
+            else:
+                kratisi()
+                exit()
+        elif (len(results) > 1):
+            print("Εχουμε πάνω από έναν παίκτη")
+            print("Ποιον παίκτη θέλετε;")
+            counter = 0
+            print("Ε Όνομα Επώνυμο")
+            for result in  results :
+                print(counter,result[1],result[2])
+                counter = counter + 1
+            print("Ποιος είναι ο αριθμός του παίκτη;")
+            selection = input("Αν δεν είναι κανένας πατήστε κενό και μετά enter")
+            if (selection == " " or selection == ""):
+                kratisi()
+                exit()
+            elif (selection.isdigit()):
+                amka = results[int(selection)][0]
+
+    print("Το αμκα του παίκτη για τον οποίο γιίνεται η κράτηση είναι: ",amka)
+            
+            
+        
+
     exit()
 
 
