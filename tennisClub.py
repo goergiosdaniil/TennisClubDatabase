@@ -233,6 +233,20 @@ def group_menu(): #Ένα γενικό μενου για τις διάφορες
         if ans==' ':
             return
 
+def epipleon_menu(): #Ενα μενού για τις μη συχνές λειτουργίες της εφαρμογής μας
+    
+    while True:
+        print('Για αλλαγή πληροφορίας γηπέδου πατήστε το 1')
+        print('Για αλλαγή πληροφορίας ατόμου πατήστε το 2')
+        ans =input()
+                   
+        if ans=='1':
+            alter_gipedo()
+        if ans=='2':
+            alter_atomo()
+        if ans==' ':
+            return
+
 
 
 
