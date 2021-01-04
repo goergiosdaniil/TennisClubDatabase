@@ -4,6 +4,7 @@ from mysql.connector import errorcode
 import os #Αυτό χρειάζεται για το dotenv. 
 from os.path import join, dirname
 from dotenv import load_dotenv #Το dotenv χρειάζεται για να μπορούμε να τραβάμε τα στοιχεία για τη βάση και να μην φαίνονται στο git
+import datetime
 
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
@@ -33,33 +34,85 @@ def connect_to_db(): #Για να συνεδέεται στη βάση μας
         exit()
 
 
-def insert_atomo(): #prosthiki ylikou 
+def valid_date(str_in): #Έλεγχος για την εγκυρότητα μιας ημερομηνίας που έχει εισηχθεί σε μορφή YYYY-MM-DD
+    try:
+        newDate = datetime.datetime(year=int(str_in[0:4]),month=int(str_in[5:7]),day=int(str_in[8:10]))
+        return True
+    except ValueError:
+        return False
+
+
+def valid_date_loop(msg): #Loop μέχρι να εισηχθεί έγκυρη ημερομηνία
+    while True:
+        date = input(msg)
+        if(valid_date(date)):
+           return date                   
+        else:
+            print("Άκυρη ημερομηνία! Παρακαλώ να γίνει εισαγωγή έγκυρης ημερομηνίας σε μορφή YYYY-MM-DD.")
+
+def atomo_validate(values,a_type): #Μύνημα και έλεγχος για έγκριση εισαγωγής στοιχείων Παίκτη η Προπονητή
+    if (a_type==1):
+        str_type="παίκτη"
+        valid4 = "Ημερομηνία Λήξης δελτίου Υγείας: "+values[9]
+    elif(a_type==2):
+        str_type="προπονητή"
+        valid4 = "ΑΦΜ: "+values[10]+"\nOρομίσθιο: "+values[11]+ "\nΒιογραφικό: "+values[12]
+    
+    valid1 = "Να γίνει εισαγωγή "+str_type+" με τα ακόλουθα στοιχεία;\n AMKA: "+values[0]+"\nΌνομα: "+values[1]+" "+values[2]
+    valid2 = "Τηλεφώνο: "+values[3]+"\nemail: "+values[4]
+    valid3 = "Στοιχεία Κατοικείας:\nΟδός: "+values[5]+" Αριθμός: "+values[6]+"\nΠόλη: "+values[7]+"\nΤΚ: "+values[8]
+    print(valid1+"\n"+valid2+"\n"+valid3+"\n"+valid4)
+    ans = input("Πατήστε 1 για έγκριση.\n")
+    return int(ans)
+   
+    
+
+def insert_atomo(): #Εδώ γίνεται η εισαγωγή ενός παίκτη η προπονητή, κάνωντας χρήση των παραπάνω
     global curs,con
+    values=[]
     while (True):
         try:
             choice = input('Πατήστε 1 για εισαγωγή παίκτη, 2 για εισαγωγή προπονητή\n')
             if choice!='1' and choice!='2':
                 print('Άκυρη επιλογή!')
-            else:                
-                atomo_AMKA,atomo_eponimo,atomo_onoma = input('Να γίνει εισαγωγή βασικών στοιχείων με την ακόλουθη μορφή: ΑΜΚΑ Επόνυμο Όνομα\n').split()            
-                atomo_tilefono,atomo_email=input('Να γίνει εισαγωγή στοιχείων επικοινωνίας με την ακόλουθη μορφή: Τηλέφωνο Email\n').split()
-                atomo_odos=input('Να γίνει εισαγωγή της Οδός Κατοικείας του ατόμου\n')
-                atomo_arithmos,atomo_poli,atomo_TK=input('Να γίνει εισαγωγή στοιχείων της υπόλοιπης διεύθυνσης με την ακόλουθη μορφή:Αριθμός Πόλη και TK\n').split()
+            else:
+                
+                atomo_AMKA = input('Να γίνει εισαγωγή του ΑΜΚΑ\n')
+                atomo_eponimo = input('Να γίνει εισαγωγή του Επόνυμου:\n')
+                atomo_onoma = input('Να γίνει εισαγωγή του Όνόματος:\n')
+                atomo_tilefono = input('Να γίνει εισαγωγή του τηλεφώνου:\n')
+                atomo_email=input('Να γίνει εισαγωγή του email:\n')
+                atomo_odos=input('Να γίνει εισαγωγή της Οδός Κατοικείας του ατόμου:\n')
+                atomo_arithmos = input('Να γίνει εισαγωγή του Αριθμού Κατοικείας του ατόμου:\n')
+                atomo_poli=input('Να γίνει εισαγωγή της Πόλης:\n')
+                atomo_TK=input('Να γίνει εισαγωγή του ΤΚ:\n')
+                values.extend((atomo_AMKA,atomo_onoma,atomo_eponimo,atomo_tilefono,atomo_email,atomo_odos,atomo_arithmos,atomo_poli,atomo_TK))
+                
                 insert1 = "INSERT INTO atomo(AMKA,Eponimo,Onoma,Tilefono,Email,Odos,Arithmos,Poli,TK) VALUES('"+atomo_AMKA+"','"+atomo_eponimo+"','"+atomo_onoma+"','"+atomo_tilefono+"','"+atomo_email+"','"+atomo_odos+"','"+atomo_arithmos+"','"+atomo_poli+"','"+atomo_TK+"');"
                 if choice=='1':
-                    paiktis_im = input('Να γίνει εισαγωγή της ημερομηνίας λήξης του δελτίου ηγείας σε μορφή YYYY-MM-DD:\n')
+                    
+                    paiktis_im = valid_date_loop('Να γίνει εισαγωγή της ημερομηνίας λήξης του δελτίου ηγείας σε μορφή YYYY-MM-DD:\n')
+                    values.append(paiktis_im)
                     insert2 = "INSERT INTO paiktis(AMKA,Hm_Lixis_Deltiou) VALUES('"+atomo_AMKA+"','"+paiktis_im+"');"
+                    
                 elif choice=='2':
+                    
                     prop_AFM = input('Να γίνει εισαγωγή του ΑΦΜ του εργαζόμενου:\n')
                     prop_wage = input('Να γίνει εισαγωγή του ορομισθίου του εργαζόμενου:\n')
                     prop_bio = input('Να γίνει εισαγωγή του βιογραφικού του εργαζόμενου:\n')
+                    values.extend((prop_AFM,prop_wage,prop_bio))
                     insert2 = "INSERT INTO proponitis(AMKA,AFM,Oromisthio,Viografiko) VALUES('"+atomo_AMKA+"','"+prop_AFM+"','"+prop_wage+"','"+prop_bio+"');"
-                curs.execute(insert1)
-                curs.execute(insert2)
-                con.commit()
+
+                v = atomo_validate(values,int(choice))
+                if(v==1):
+                    curs.execute(insert1)
+                    curs.execute(insert2)
+                    con.commit()
+                    print('Εγινε η προσθήκη.')
+                else:
+                    print("Η εισαγωγή ακυρώθηκε.")
             ans = input('Θες να προσθέσουμε κάποιο άλλο άτομο; Αν ναι πατήστε 1, αλλιώς πατήστε κενό και μετά enter για επιστροφή στο αρχικό μενού!\n')
-            if (ans!='1'):
-                print('Εγινε η προσθήκη')
+            if (ans!='1'):        
                 return
         except:
             print("Αδυναμία προσθήκης ατόμου.")
@@ -222,14 +275,15 @@ def view_group(): # Αυτό απλώς εκτυπώνει τα γήπεδα π�
     for i in result:
         print(i)
 
-def insert_group(): #Συνάρτηση για εισαγωγή ατόμου, παίκτη η προπονητή, στην βάση
+def insert_group(): #Συνάρτηση για εισαγωγή γκρουπ εκμάθησης στην βάση
     global curs,con
     while (True):
         try:
             group_onoma= input('Πως λέγεται το γκρουπ;\n')
             group_epipedo = input('Το επίπεδο του γκρουπ θα είναι:\n')
-            group_im_enarxis = input('Να γίνει εισαγωγή της ημερομηνίας έναρξης σε μορφή YYYY-MM-DD:\n')
-            group_im_lixis = input('Να γίνει εισαγωγή της ημερομηνίας λήξης σε μορφή YYYY-MM-DD:\n')
+            group_im_enarxis = valid_date_loop('Να γίνει εισαγωγή της ημερομηνίας έναρξης σε μορφή YYYY-MM-DD:\n')       
+            group_im_lixis = valid_date_loop('Να γίνει εισαγωγή της ημερομηνίας λήξης σε μορφή YYYY-MM-DD:\n')
+            
             print("Ποιούς απο τους προπονητές θα εκπαιδεύσει το group;")
             view_atomo(2)
             AMKA_prop = input('To ΑΜΚΑ του προπονητή:\n')
@@ -242,10 +296,9 @@ def insert_group(): #Συνάρτηση για εισαγωγή ατόμου, π
                 print('Εγινε η προσθήκη')
                 return
         except:
-            print("Αδυναμία προσθήκης γηπέδου!")
+            print("Αδυναμία προσθήκης γκρούπ!")
             return
 
-    
 
 
 
