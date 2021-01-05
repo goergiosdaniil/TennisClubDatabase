@@ -70,17 +70,35 @@ def valid_date_loop(msg): #Loop μέχρι να εισηχθεί έγκυρη η
         else:
             print("Άκυρη ημερομηνία! Παρακαλώ να γίνει εισαγωγή έγκυρης ημερομηνίας σε μορφή YYYY-MM-DD.")
 
-def valid_gipedo_loop(msg):    
-    global curs,con
-    curs.execute("SELECT MAX(Id) as MaxId FROM `gipedo`;")
-    last_id=int(curs.fetchall()[0][0])
+
+def available_gipedo(idn): #έλεγχος διαθεσιμότητας γηπέδου
+    global curs,con   
+    curs.execute("SELECT Id FROM `gipedo` WHERE Texn_Diathesimotita = '1';")
+    result = curs.fetchall()
+    available_ids = [i[0] for i in result]
+    if(int(idn) not in available_ids):
+        return False
+    return True
     
+def valid_gipedo(idn): #έλεγχος ύπαρξης γηπέδου στην βάση
+    global curs,con
+
+    curs.execute("SELECT MAX(Id) as MaxId FROM `gipedo`;")
+    last_id=int(curs.fetchall()[0][0])  
+    if (int(idn) > last_id):
+        return False
+    return True
+    
+
+
+def valid_gipedo_loop(msg):  #loop μέχρι να δοθεί Id διαθέσιμου γηπέδου  
+  
     while True:
         idn = input(msg)
-        if(not idn.isdigit()):
+        if(not idn.isdigit() or not valid_gipedo(idn)):
            print("Άκυρο Id! Παρακαλώ να γίνει εισαγωγή έγκυρου Id γηπέδου.")                  
-        elif (int(idn) > last_id):
-            print("Δεν υπάρχει αυτό το γήπεδο! Παρακαλώ να γίνει εισαγωγή έγκυρου Id γηπέδου.")
+        elif (not available_gipedo(idn)):
+            print("Αυτο το γήπεδο δεν είναι διαθέσιμο. Παρακαλώ να γίνει εισαγωγή διαθέσιμου Id γηπέδου.")
         else:
             return idn
    
@@ -446,7 +464,7 @@ def insert_group(): #Συνάρτηση για εισαγωγή γκρουπ ε�
 
 
 
-def programma_on_date():
+def programma_on_date(): #εμφανίζει κρατήσεις για συγκεκριμένη ημερομηνία
     global curs,con
     date=valid_date_loop("Να εισηχθεί η επιθημητή ημερομηνία:\n")
     print("Οι κρατήσεις για την ημερομηνία "+date+" είναι:")
@@ -460,18 +478,17 @@ def programma_on_date():
         for i in result:
             print(i)
     while(True):
-        if(input("Πατήστε ENTER για επιστροφή.\n")):
+        if(input("Πατήστε κενό και ENTER για επιστροφή.\n")):
             return
 
 
-def programma_for_gipedo():
+def programma_for_gipedo(): #εμφανίζει τις κρατήσεις για ένα συγκεκριμένο γήπεδο
     global curs,con
    
-    print("Τα γήπεδα που έχουμε στην διαθεσή μας είναι:")
     view_gipedo(2)
     idn = valid_gipedo_loop("Εισάγετε τον αριθμό του ID του γηπέδου για το οποίο θέλετε να δείτε όλες τις κρατήσεις.\n")
     print("Οι συνολικές κρατήσεις για το γήπεδο αυτό είναι:")
-    select = "SELECT * FROM `kratisi` K WHERE  K.Id_Gipedoy ='"+idn+"'"
+    select = "SELECT * FROM `kratisi` K WHERE  K.Id_Gipedou ='"+idn+"'"
     curs.execute(select)
     
     result=curs.fetchall()
@@ -481,19 +498,18 @@ def programma_for_gipedo():
         for i in result:
             print(i)
     while(True):
-        if(input("Πατήστε ENTER για επιστροφή.\n")):
+        if(input("Πατήστε κενό και ENTER για επιστροφή.\n")):
             return
     
-def programma_for_gipedo_on_date():
+def programma_for_gipedo_on_date(): #εμφανίζει το πρόγραμμα για ενα γήπεδο σε σηγκεκριμένη μέρα. WIP: λάθος σύνταξη του query
     global curs,con
    
-    print("Τα γήπεδα που έχουμε στην διαθεσή μας είναι:")
     view_gipedo(2)
     idn = valid_gipedo_loop("Εισάγετε τον αριθμό του ID του γηπέδου για το οποίο θέλετε να δείτε όλες τις κρατήσεις.\n")
     date=valid_date_loop("Να εισηχθεί η επιθημητή ημερομηνία:\n")
     
     print("Οι συνολικές κρατήσεις για το γήπεδο αυτό για την ημερομηνία "+date+" είναι:")
-    select = "SELECT * FROM `kratisi` K WHERE  K.Id_Gipedoy ='"+idn+" AND K.Imerominia >= '"+date+"' and K.Imerominia < DATE_ADD('"+date+"', INTERVAL 24 hour)'"
+    select = "SELECT * FROM `kratisi` K WHERE  K.Id_Gipedou ='"+idn+" AND K.Imerominia >= '"+date+"' and K.Imerominia < DATE_ADD('"+date+"', INTERVAL 24 hour)'"
     curs.execute(select)
     
     result=curs.fetchall()
@@ -503,7 +519,7 @@ def programma_for_gipedo_on_date():
         for i in result:
             print(i)
     while(True):
-        if(input("Πατήστε ENTER για επιστροφή.\n")):
+        if(input("Πατήστε κενό και ENTER για επιστροφή.\n")):
             return
     
         
@@ -513,8 +529,8 @@ def programma():
     global curs,con
     try:
         while (True):
-            print('Για να δείτε όλες τις κρατήσεις για συγκεκρημένη ημερομηνία πατήστε 1\nΓια να δείτε όλες τις κρατήσεις για συγκεκρημένο γήπεδο πατήστε 2')
-            print('Για να δείτε όλες τις κρατήσεις για συγκεκρημένη ημερομηνία μόνο για συγκεκρημένο γήπεδο πατήστε 3\n Για επιστροφή πατήστε κενό.')
+            print('Για να δείτε όλες τις κρατήσεις για συγκεκριμένη ημερομηνία πατήστε 1\nΓια να δείτε όλες τις κρατήσεις για συγκεκριμένο γήπεδο πατήστε 2')
+            print('Για να δείτε όλες τις κρατήσεις για συγκεκριμένη ημερομηνία μόνο για συγκεκριμένο γήπεδο πατήστε 3\n Για επιστροφή πατήστε κενό.')
             ans =input()
             if ans=='1':
                 programma_on_date()
