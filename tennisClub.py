@@ -509,7 +509,7 @@ def programma_for_gipedo_on_date(): #εμφανίζει το πρόγραμμα 
     date=valid_date_loop("Να εισηχθεί η επιθημητή ημερομηνία:\n")
     
     print("Οι συνολικές κρατήσεις για το γήπεδο αυτό για την ημερομηνία "+date+" είναι:")
-    select = "SELECT * FROM `kratisi` K WHERE  K.Id_Gipedou ='"+idn+" AND K.Imerominia >= '"+date+"' and K.Imerominia < DATE_ADD('"+date+"', INTERVAL 24 hour)'"
+    select = "SELECT * FROM `kratisi` K WHERE  K.Id_Gipedou ='"+idn+"' AND K.Imerominia >= '"+date+"' and K.Imerominia < DATE_ADD('"+date+"', INTERVAL 24 hour)"
     curs.execute(select)
     
     result=curs.fetchall()
