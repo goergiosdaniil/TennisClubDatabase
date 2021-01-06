@@ -468,10 +468,8 @@ def programma_on_date(): #εμφανίζει κρατήσεις για συγκ�
     global curs,con
     date=valid_date_loop("Να εισηχθεί η επιθημητή ημερομηνία:\n")
     print("Οι κρατήσεις για την ημερομηνία "+date+" είναι:")
-    select = "SELECT * FROM `kratisi` K WHERE  K.Imerominia >= '"+date+"' and K.Imerominia < DATE_ADD('"+date+"', INTERVAL 24 hour)"
-    curs.execute(select)
+    result=prog_query_return(1,0,date)
     
-    result=curs.fetchall()
     if(len(result)==0):
         print("Δέν υπάρχουν κρατήσεις για αυτήν την ημερομηνία.")
     else:
@@ -487,11 +485,9 @@ def programma_for_gipedo(): #εμφανίζει τις κρατήσεις για
    
     view_gipedo(2)
     idn = valid_gipedo_loop("Εισάγετε τον αριθμό του ID του γηπέδου για το οποίο θέλετε να δείτε όλες τις κρατήσεις.\n")
-    print("Οι συνολικές κρατήσεις για το γήπεδο αυτό είναι:")
-    select = "SELECT * FROM `kratisi` K WHERE  K.Id_Gipedou ='"+idn+"'"
-    curs.execute(select)
+    print("Οι συνολικές κρατήσεις για το γήπεδο αυτό είναι:")   
+    result=prog_query_return(2,idn,"")
     
-    result=curs.fetchall()
     if(len(result)==0):
         print("Δέν υπάρχουν κρατήσεις για αυτο το γήπεδο")
     else:
@@ -501,7 +497,7 @@ def programma_for_gipedo(): #εμφανίζει τις κρατήσεις για
         if(input("Πατήστε κενό και ENTER για επιστροφή.\n")):
             return
     
-def programma_for_gipedo_on_date(): #εμφανίζει το πρόγραμμα για ενα γήπεδο σε σηγκεκριμένη μέρα. WIP: λάθος σύνταξη του query
+def programma_for_gipedo_on_date(): #εμφανίζει το πρόγραμμα για ενα γήπεδο σε σηγκεκριμένη μέρα
     global curs,con
    
     view_gipedo(2)
@@ -509,10 +505,8 @@ def programma_for_gipedo_on_date(): #εμφανίζει το πρόγραμμα 
     date=valid_date_loop("Να εισηχθεί η επιθημητή ημερομηνία:\n")
     
     print("Οι συνολικές κρατήσεις για το γήπεδο αυτό για την ημερομηνία "+date+" είναι:")
-    select = "SELECT * FROM `kratisi` K WHERE  K.Id_Gipedou ='"+idn+"' AND K.Imerominia >= '"+date+"' and K.Imerominia < DATE_ADD('"+date+"', INTERVAL 24 hour)"
-    curs.execute(select)
+    result=prog_query_return(3,idn,date)
     
-    result=curs.fetchall()
     if(len(result)==0):
         print("Δέν υπάρχουν κρατήσεις για αυτον τον συνδιασμό")
     else:
@@ -522,6 +516,22 @@ def programma_for_gipedo_on_date(): #εμφανίζει το πρόγραμμα 
         if(input("Πατήστε κενό και ENTER για επιστροφή.\n")):
             return
     
+
+def prog_query_return(mode,idn,date): #επιστρέφει τα αποτελέσματα για τα αντίστοιχα query. για χρήση στις απο πάνω συναρτήσεις αλλα και σε άλλα κομμάτια του προγράμματος
+    global curs,con
+
+    if(mode==1):
+        select = "SELECT * FROM `kratisi` K WHERE  K.Imerominia >= '"+date+"' and K.Imerominia < DATE_ADD('"+date+"', INTERVAL 24 hour)"
+    if(mode==2):
+        select = "SELECT * FROM `kratisi` K WHERE  K.Id_Gipedou ='"+idn+"'"
+    if(mode==3):
+        select = "SELECT * FROM `kratisi` K WHERE  K.Id_Gipedou ='"+idn+"' AND K.Imerominia >= '"+date+"' and K.Imerominia < DATE_ADD('"+date+"', INTERVAL 24 hour)"
+    
+    curs.execute(select)    
+    result=curs.fetchall()
+    return result
+
+
         
        
 
