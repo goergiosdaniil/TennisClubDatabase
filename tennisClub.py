@@ -124,20 +124,34 @@ def atomo_validate(values,a_type): #Μύνημα και έλεγχος για έ
    
     
 
-def insert_atomo(): #Εδώ γίνεται η εισαγωγή ενός παίκτη η προπονητή, κάνωντας χρήση των παραπάνω
+def insert_atomo(pre_AMKA,pre_eponimo,pre_tilefono,mode): #Εδώ γίνεται η εισαγωγή ενός παίκτη η προπονητή, κάνωντας χρήση των παραπάνω
+    #mode==0: έρχομαι απο αρχικό μενου, χωρίς κανένα στοιχείο
+    #mode==1 έχω είδη ΑΜΚΑ, mode==2 έχω είδη επώνυμο, mode==3 έχω είδη τηλέφωνο
     global curs,con
     values=[]
     while (True):
         try:
-            choice = input('Πατήστε 1 για εισαγωγή παίκτη, 2 για εισαγωγή προπονητή\n')
+            if(mode==0):
+                choice = input('Πατήστε 1 για εισαγωγή παίκτη, 2 για εισαγωγή προπονητή\n')
+            else:
+                choice='1'
             if choice!='1' and choice!='2':
                 print('Άκυρη επιλογή!')
             else:
-                
-                atomo_AMKA = input('Να γίνει εισαγωγή του ΑΜΚΑ\n')
-                atomo_eponimo = input('Να γίνει εισαγωγή του Επόνυμου:\n')
+
+                if(mode!=1):
+                    atomo_AMKA = input('Να γίνει εισαγωγή του ΑΜΚΑ\n')
+                else:
+                    atomo_AMKA = pre_AMKA
+                if(mode!=2):
+                    atomo_eponimo = input('Να γίνει εισαγωγή του Επόνυμου:\n')
+                else:
+                    atomo_eponimo = pre_eponimo
                 atomo_onoma = input('Να γίνει εισαγωγή του Όνόματος:\n')
-                atomo_tilefono = input('Να γίνει εισαγωγή του τηλεφώνου:\n')
+                if(mode!=3):
+                    atomo_tilefono = input('Να γίνει εισαγωγή του τηλεφώνου:\n')
+                else:
+                    atomo_tilefono=pre_tilefono
                 atomo_email=input('Να γίνει εισαγωγή του email:\n')
                 atomo_odos=input('Να γίνει εισαγωγή της Οδός Κατοικείας του ατόμου:\n')
                 atomo_arithmos = input('Να γίνει εισαγωγή του Αριθμού Κατοικείας του ατόμου:\n')
@@ -204,7 +218,11 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
             curs.execute("SELECT * FROM `atomo` WHERE AMKA='"+ans+"';")
             results=curs.fetchall()
             if (len(results) == 0):
-                print("Δεν υπάρχει παίκτης με αυτό το αμκα. ")
+                print("Δεν υπάρχει παίκτης με αυτό το αμκα. Να γίνει προσθήκη νεου ατόμου με αυτό το στοιχείο; ")
+                inp = input("Πατήστε Ν για ναι, άλλο κουμπί για όχι: ")
+                if(inp=="Ν" or inp=="N"):
+                    insert_atomo(ans,"","",1)
+                   
                 kratisi()
                 exit()
             elif (len(results) == 1):
@@ -222,7 +240,11 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
             curs.execute("SELECT * FROM `atomo` WHERE Tilefono='"+ans+"';")
             results=curs.fetchall()
             if (len(results) == 0):
-                print("Δεν υπάρχει παίκτης με αυτό το τηλέφωνο. ")
+                print("Δεν υπάρχει παίκτης με αυτό το τηλέφωνο. Να γίνει προσθήκη νεου ατόμου με αυτό το στοιχείο; ")
+                inp = input("Πατήστε Ν για ναι, άλλο κουμπί για όχι: ")
+                if(inp=="Ν" or inp=="N"):
+                    insert_atomo("","",ans,3)
+                  
                 kratisi()
                 exit()
             elif (len(results) == 1):
@@ -261,8 +283,12 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
         curs.execute("SELECT * FROM `atomo` WHERE Eponimo='"+eponimo+"';")
         print(eponimo) 
         results=curs.fetchall()
-        if (len(results) == 0):
-            print("Δεν υπάρχει παίκτης με αυτό το όνομα. ")
+        if (len(results) == 0):            
+            print("Δεν υπάρχει παίκτης με αυτό το επόνυμο. Να γίνει προσθήκη νεου ατόμου με αυτό το στοιχείο; ")
+            inp = input("Πατήστε Ν για ναι, άλλο κουμπί για όχι: ")
+            if(inp=="Ν" or inp=="N"):
+                insert_atomo("",ans,"",2)
+              
             kratisi()
             exit()
         elif (len(results) == 1):
@@ -332,7 +358,7 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
     final_datetime = str(input_date)+" "+str(input_time)
     print(final_datetime)
     inp = input("Σωστά; Ν(αι) ή Ο(χι): ")
-    if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or engilsh
+    if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or english
         query = "INSERT INTO `kratisi` (`Id`, `Imerominia`, `Diarkeia`, `Kostos`, `Id_Gipedou`, `Id_Paikti`, `Id_Group`, `Id_Agona`) VALUES (NULL, '"+str(final_datetime)+"', '"+str(input_diarkeia)+"', '"+str(kostos)+"', '"+str(selected_gipedo_id)+"', '"+str(amka)+"', NULL, NULL)"
         curs.execute(query)
         con.commit()
@@ -603,7 +629,7 @@ def menu(): #Σε αυτό το μενού πρέπει να σχεδιάσου�
         if ans=='2':
             change_kratisi()
         if ans=='3':
-            insert_atomo()
+            insert_atomo("","","",0)
         if ans=='4':
             tournoua_menu()
         if ans=='5':
