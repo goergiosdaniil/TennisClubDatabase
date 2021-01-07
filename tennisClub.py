@@ -211,40 +211,98 @@ def view_atomo(a_type): #Για να εμφανίζονται είτε οι πρ
 
 def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του παίκτη. Με αυτόν τον τρόπο μπορούμε να κάνουμε εύκολη τη δουλειά του γραμματέα
     global curs,con
-    ans = input("Βάλτε εδώ τον ΑΜΚΑ, το τηλέφωνο ή το Επώνυμο του Παίκτη.")
-    if (ans.isdigit()): # Εδώ ελέγχω αν είναι νούμερο ή γράμματα. Ώστε να ξέρω τι μου δίνει, αν μου δίνει όνομα ή κάτι με νούμερα
-        #Εχω κάτι με νούμερα. Πρέπει να ελέξω αν είναι ΑΜΚΑ ή τηλέφωνο. Αρα αν είναι 11 ή 10 ψηφία
-        if (len(str(ans)) == 11):#Αυτό είναι το μέγεθος του ΑΜΚΑ. Εδώ ελέγχω αν έχω αυτόν τον ΑΜΚΑ στη βάση
-            curs.execute("SELECT * FROM `atomo` WHERE AMKA='"+ans+"';")
-            results=curs.fetchall()
-            if (len(results) == 0):
-                print("Δεν υπάρχει παίκτης με αυτό το αμκα. Να γίνει προσθήκη νεου ατόμου με αυτό το στοιχείο; ")
-                inp = input("Πατήστε Ν για ναι, άλλο κουμπί για όχι: ")
-                if(inp=="Ν" or inp=="N"):
-                    insert_atomo(ans,"","",1)
-                   
-                kratisi()
-                exit()
-            elif (len(results) == 1):
-                print("Ο παίκτης είναι: ")
-                print(results[0][1],results[0][2])
-                inp = input("Σωστό. Ν(αι) ή Ο(χι): ")
-                if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or engilsh
-                    amka = results[0][0]
-                    onoma = results[0][1]
-                    eponymo = results[0][2]
-                else:
+
+
+    while True:    
+        ans = input("Βάλτε εδώ τον ΑΜΚΑ, το τηλέφωνο ή το Επώνυμο του Παίκτη.")
+        if (ans.isdigit()): # Εδώ ελέγχω αν είναι νούμερο ή γράμματα. Ώστε να ξέρω τι μου δίνει, αν μου δίνει όνομα ή κάτι με νούμερα
+
+            
+            #Εχω κάτι με νούμερα. Πρέπει να ελέξω αν είναι ΑΜΚΑ ή τηλέφωνο. Αρα αν είναι 11 ή 10 ψηφία            
+            if (len(str(ans)) == 11):#Αυτό είναι το μέγεθος του ΑΜΚΑ. Εδώ ελέγχω αν έχω αυτόν τον ΑΜΚΑ στη βάση
+                curs.execute("SELECT * FROM `atomo` WHERE AMKA='"+ans+"';")
+                results=curs.fetchall()
+                if (len(results) == 0):
+                    
+                    print("Δεν υπάρχει παίκτης με αυτό το αμκα. Να γίνει προσθήκη νεου ατόμου με αυτό το στοιχείο; ")
+                    inp = input("Πατήστε Ν για ναι, άλλο κουμπί για όχι: ")
+                    if(inp=="Ν" or inp=="N"):
+                        insert_atomo(ans,"","",1)
+                        
+                      
                     kratisi()
                     exit()
-        elif(len(str(ans)) == 10):#Αυτό είναι το μέγεθος του τηλεφώνου και ελέγχω αν το έχω στη βάση αλλά και πόσες φορές το έχω. Αν το έχω πάνω από μία δίνω επιλογές για το ποιον θέλει
-            curs.execute("SELECT * FROM `atomo` WHERE Tilefono='"+ans+"';")
+
+                    
+                elif (len(results) == 1):
+                    print("Ο παίκτης είναι: ")
+                    print(results[0][1],results[0][2])
+                    inp = input("Σωστό. Ν(αι) ή Ο(χι): ")
+                    if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or engilsh
+                        amka = results[0][0]
+                        onoma = results[0][1]
+                        eponymo = results[0][2]
+                    else:
+                        kratisi()
+                        exit()
+
+                        
+            #Αυτό είναι το μέγεθος του τηλεφώνου και ελέγχω αν το έχω στη βάση αλλά και πόσες φορές το έχω. Αν το έχω πάνω από μία δίνω επιλογές για το ποιον θέλει               
+            elif(len(str(ans)) == 10):#Αυτό είναι το μέγεθος του τηλεφώνου και ελέγχω αν το έχω στη βάση αλλά και πόσες φορές το έχω. Αν το έχω πάνω από μία δίνω επιλογές για το ποιον θέλει
+                curs.execute("SELECT * FROM `atomo` WHERE Tilefono='"+ans+"';")
+                results=curs.fetchall()
+                if (len(results) == 0):
+                    print("Δεν υπάρχει παίκτης με αυτό το τηλέφωνο. Να γίνει προσθήκη νεου ατόμου με αυτό το στοιχείο; ")
+                    inp = input("Πατήστε Ν για ναι, άλλο κουμπί για όχι: ")
+                    if(inp=="Ν" or inp=="N"):
+                        insert_atomo("","",ans,3)
+
+                     
+                    kratisi()
+                    exit()
+                elif (len(results) == 1):
+                    print("Ο παίκτης είναι: ")
+                    print(results[0][1],results[0][2])
+                    inp = input("Σωστό. Ν(αι) ή Ο(χι): ")
+                    if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or engilsh
+                        amka = results[0][0]
+                        onoma = results[0][1]
+                        eponymo = results[0][2]
+                        print(amka)
+                    else:
+                        kratisi()
+                        exit()
+                elif (len(results) > 1):
+                    print("Εχουμε πάνω από έναν παίκτη")
+                    print("Ποιον παίκτη θέλετε;")
+                    counter = 0
+                    print("Ε Όνομα Επώνυμο")
+                    for result in  results :
+                        print(counter,result[1],result[2])
+                        counter = counter + 1
+                    print("Ποιος είναι ο αριθμός του παίκτη;")
+                    selection = input("Αν δεν είναι κανένας πατήστε κενό και μετά enter ")
+                    if (selection == " " or selection == ""):
+                        kratisi()
+                        exit()
+                    elif (selection.isdigit()):
+                        amka = results[int(selection)][0]
+                        onoma = results[int(selection)][1]
+                        eponymo = results[int(selection)][2]
+
+        else:
+            #Εχω όνομα αρα κάνω αντίστοιχο query. Κάνω ελέγχους αν είναι πάνω από ένας με αυτό το όνομα
+            eponimo= ans.capitalize()
+            curs.execute("SELECT * FROM `atomo` WHERE Eponimo='"+eponimo+"';")
+            print(eponimo) 
             results=curs.fetchall()
-            if (len(results) == 0):
-                print("Δεν υπάρχει παίκτης με αυτό το τηλέφωνο. Να γίνει προσθήκη νεου ατόμου με αυτό το στοιχείο; ")
+            if (len(results) == 0):            
+                print("Δεν υπάρχει παίκτης με αυτό το επόνυμο. Να γίνει προσθήκη νεου ατόμου με αυτό το στοιχείο; ")
                 inp = input("Πατήστε Ν για ναι, άλλο κουμπί για όχι: ")
                 if(inp=="Ν" or inp=="N"):
-                    insert_atomo("","",ans,3)
+                    insert_atomo("",ans,"",2)
                   
+                
                 kratisi()
                 exit()
             elif (len(results) == 1):
@@ -255,6 +313,7 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
                     amka = results[0][0]
                     onoma = results[0][1]
                     eponymo = results[0][2]
+                    
                     print(amka)
                 else:
                     kratisi()
@@ -268,7 +327,7 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
                     print(counter,result[1],result[2])
                     counter = counter + 1
                 print("Ποιος είναι ο αριθμός του παίκτη;")
-                selection = input("Αν δεν είναι κανένας πατήστε κενό και μετά enter ")
+                selection = input("Αν δεν είναι κανένας πατήστε κενό και μετά enter")
                 if (selection == " " or selection == ""):
                     kratisi()
                     exit()
@@ -277,51 +336,26 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
                     onoma = results[int(selection)][1]
                     eponymo = results[int(selection)][2]
 
-    else:
-        #Εχω όνομα αρα κάνω αντίστοιχο query. Κάνω ελέγχους αν είναι πάνω από ένας με αυτό το όνομα
-        eponimo= ans.capitalize()
-        curs.execute("SELECT * FROM `atomo` WHERE Eponimo='"+eponimo+"';")
-        print(eponimo) 
-        results=curs.fetchall()
-        if (len(results) == 0):            
-            print("Δεν υπάρχει παίκτης με αυτό το επόνυμο. Να γίνει προσθήκη νεου ατόμου με αυτό το στοιχείο; ")
-            inp = input("Πατήστε Ν για ναι, άλλο κουμπί για όχι: ")
-            if(inp=="Ν" or inp=="N"):
-                insert_atomo("",ans,"",2)
-              
-            kratisi()
-            exit()
-        elif (len(results) == 1):
-            print("Ο παίκτης είναι: ")
-            print(results[0][1],results[0][2])
-            inp = input("Σωστό. Ν(αι) ή Ο(χι): ")
-            if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or engilsh
-                amka = results[0][0]
-                onoma = results[0][1]
-                eponymo = results[0][2]
-                
-                print(amka)
-            else:
-                kratisi()
-                exit()
-        elif (len(results) > 1):
-            print("Εχουμε πάνω από έναν παίκτη")
-            print("Ποιον παίκτη θέλετε;")
-            counter = 0
-            print("Ε Όνομα Επώνυμο")
-            for result in  results :
-                print(counter,result[1],result[2])
-                counter = counter + 1
-            print("Ποιος είναι ο αριθμός του παίκτη;")
-            selection = input("Αν δεν είναι κανένας πατήστε κενό και μετά enter")
-            if (selection == " " or selection == ""):
-                kratisi()
-                exit()
-            elif (selection.isdigit()):
-                amka = results[int(selection)][0]
-                onoma = results[int(selection)][1]
-                eponymo = results[int(selection)][2]
 
+
+        (input_date,input_time,input_diarkeia,kostos,selected_option_for_gipedo,selected_gipedo_id,selected_gipedo_name) = kratisi_input(onoma,eponymo)
+        final_datetime = str(input_date)+" "+str(input_time)
+        confirm = kratisi_confirm(input_date,input_time,input_diarkeia,kostos,selected_option_for_gipedo,selected_gipedo_id,selected_gipedo_name,onoma,eponymo,final_datetime)
+        if(confirm):
+            query = "INSERT INTO `kratisi` (`Id`, `Imerominia`, `Diarkeia`, `Kostos`, `Id_Gipedou`, `Id_Paikti`, `Id_Group`, `Id_Agona`) VALUES (NULL, '"+str(final_datetime)+"', '"+str(input_diarkeia)+"', '"+str(kostos)+"', '"+str(selected_gipedo_id)+"', '"+str(amka)+"', NULL, NULL)"
+            curs.execute(query)
+            con.commit()
+        ans=input("Πατήστε Ν για να εισάγετε κι αλλη κράτηση, άλλο κουμπί για επιστροφή στο αρχικό μενού: ")
+        if(ans!="N" or ans!="Ν"):
+            return
+        
+      
+
+    
+
+
+def kratisi_input(onoma,eponymo):
+    
     print("Η κράτηση θα γίνει για : ",onoma,eponymo)
     print("Για πότε θέλετε να γίνει κράτηση;")
     print("Σε μορφή χρονιά-μήνας-ημέρα.")
@@ -334,6 +368,8 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
     input_time = input("Τι ώρα θέλετε;")# Θα αλλάξει για να γίνεται έλεγχος εγκυρότητας 
     input_diarkeia = input("Πόσες ώρες;")#  Θέλει συζήτηση αυτό
     kostos = "0"
+
+    
     #Εδώ χρειάζεται να γίνεται έλεγχος για τη διαθεσιμότητα των γηπέδων. Πρέπει να το αλλάξουμε αλλά για τώρα 5/01/2021 09:09 θα το αφήσω ως εξής
     #Απλώς να ρωτάει σε ποιο γήπεδο θες
     print("Αυτά είναι όλα τα διαθέσιμα γήπεδα μας")
@@ -347,6 +383,11 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
     selected_option_for_gipedo = input("Για ποιο γήπεδο θέλετε;")
     selected_gipedo_id = results[int(selected_option_for_gipedo)][0]
     selected_gipedo_name = results[int(selected_option_for_gipedo)][1]
+
+    return (input_date,input_time,input_diarkeia,kostos,selected_option_for_gipedo,selected_gipedo_id,selected_gipedo_name)
+
+
+def kratisi_confirm(input_date,input_time,input_diarkeia,kostos,selected_option_for_gipedo,selected_gipedo_id,selected_gipedo_name,onoma,eponymo,final_datetime):
     print("Η κράτηση θα γίνει για:")
     print("Ονομα",onoma)
     print("Επώνυμο",eponymo)
@@ -355,36 +396,45 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
     print("Με διάρκεια",input_diarkeia)
     print("Κόστος",kostos)
     print("ID Γηπέδου: ",selected_gipedo_id," Όνομα Γηπέδου: ",selected_gipedo_name)
-    final_datetime = str(input_date)+" "+str(input_time)
     print(final_datetime)
     inp = input("Σωστά; Ν(αι) ή Ο(χι): ")
     if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or english
-        query = "INSERT INTO `kratisi` (`Id`, `Imerominia`, `Diarkeia`, `Kostos`, `Id_Gipedou`, `Id_Paikti`, `Id_Group`, `Id_Agona`) VALUES (NULL, '"+str(final_datetime)+"', '"+str(input_diarkeia)+"', '"+str(kostos)+"', '"+str(selected_gipedo_id)+"', '"+str(amka)+"', NULL, NULL)"
-        curs.execute(query)
-        con.commit()
-        print("Θεωρητικά έγινε η κράτηση")
-    
-    
-
+        return True
+    return False
     
 
 
     
-    
-            
-        
 
-    exit()
+
+
+
+def kratisi_overlap(date,time,dur,idn):
+    #dur is in hours
+    global curs,con
+    start = time
+    end = str(int(time) + int(dur))
+    
+    select = "SELECT * FROM `kratisi` K WHERE K.Id_Gipedou='"+idn+"' and K.Imerominia >= DATE_ADD('"+date+"', INTERVAL '"+start+"' hour) and K.Imerominia < DATE_ADD('"+date+"', INTERVAL '"+end+"' hour)"
+    curs.execute(select)    
+    result=curs.fetchall()
+    if(len(result)!=0):
+        return (True,result)
+    return (False,result)
+
+   
 
 def date_check_for_kratisi():#Ελέγχω αν είναι πριν τη σημερινή ημερομηνία
-    input_date = valid_date_loop('Να γίνει εισαγωγή της ημερομηνίας  σε μορφή YYYY-MM-DD:\n') 
-    if (today <= strtodate(input_date)):
-        print("Σωστή ημερομηνία")
-    else:
-        print("Δεν μπορείτε να κάνετε κράτηση σε παλαιότερη ημερομηνία από τη σημερινή")
-        date_check_for_kratisi()
-        exit()
-    return (strtodate(input_date))
+    input_date = valid_date_loop('Να γίνει εισαγωγή της ημερομηνίας  σε μορφή YYYY-MM-DD:\n')
+
+    while True:
+        if (today <= strtodate(input_date)):
+            print("Σωστή ημερομηνία")
+            return (strtodate(input_date))
+        else:
+            print("Δεν μπορείτε να κάνετε κράτηση σε παλαιότερη ημερομηνία από τη σημερινή")
+
+    
 
 def insert_gipedo(): #prosthiki gipedoy
     global curs,con
@@ -430,6 +480,7 @@ def alter_gipedo():
         curs.execute("UPDATE`gipedo` SET Texn_Diathesimotita = '"+new_d+"' WHERE Id = "+i)
     curs.commit()
         
+
     
         
 
