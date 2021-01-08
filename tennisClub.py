@@ -102,6 +102,43 @@ def valid_gipedo_loop(msg):  #loop μέχρι να δοθεί Id διαθέσι�
         else:
             return idn
    
+def str_len_check(word_in,mode): #έλεγχος για ΑΜΚΑ (mode 1) τηλέφωνο (mode 2) ΑΦΜ (mode 3)  ΤΚ (mode 4) η  αριθμός κατοικείας (mode 5)
+    if mode==1:
+        if len(word_in)==11 and word_in.isdigit():
+            return True
+    if mode==2:
+        if len(word_in)==10 and word_in.isdigit():
+            return True
+    if mode==3:
+        if len(word_in)==9 and word_in.isdigit():
+            return True
+    if mode==4:
+        if len(word_in)==5 and word_in.isdigit():
+            return True
+    if mode==5:
+        if word_in.isdigit():
+            return True
+    return False
+    
+    
+def str_len_check_loop(msg,mode):
+    if(mode==1):
+        inp = " AMKA"
+    elif (mode==2):
+        inp =" τηλέφωνο"
+    elif (mode==3):
+        inp =" ΑΦΜ"
+    elif (mode==4):
+        inp ="ς ΤΚ"
+    elif (mode==5):
+        inp ="ς αριθμός κατοικείας."
+    while True:
+        word_in = input(msg)
+        if(str_len_check(word_in,mode)):
+           return word_in                   
+        else:
+            print("Άκυρο"+inp+" ! Παρακαλώ να γίνει εισαγωγή έγκυρου αριθμού.")
+    
     
     
 
@@ -113,7 +150,7 @@ def atomo_validate(values,a_type): #Μύνημα και έλεγχος για έ
         valid4 = "Ημερομηνία Λήξης δελτίου Υγείας: "+values[9]
     elif(a_type==2):
         str_type="προπονητή"
-        valid4 = "ΑΦΜ: "+values[10]+"\nOρομίσθιο: "+values[11]+ "\nΒιογραφικό: "+values[12]
+        valid4 = "ΑΦΜ: "+values[9]+"\nOρομίσθιο: "+values[10]+ "\nΒιογραφικό: "+values[11]
     
     valid1 = "Να γίνει εισαγωγή "+str_type+" με τα ακόλουθα στοιχεία;\n AMKA: "+values[0]+"\nΌνομα: "+values[1]+" "+values[2]
     valid2 = "Τηλεφώνο: "+values[3]+"\nemail: "+values[4]
@@ -140,7 +177,7 @@ def insert_atomo(pre_AMKA,pre_eponimo,pre_tilefono,mode): #Εδώ γίνεται
             else:
 
                 if(mode!=1):
-                    atomo_AMKA = input('Να γίνει εισαγωγή του ΑΜΚΑ\n')
+                    atomo_AMKA = str_len_check_loop('Να γίνει εισαγωγή του ΑΜΚΑ\n',1)
                 else:
                     atomo_AMKA = pre_AMKA
                 if(mode!=2):
@@ -149,14 +186,14 @@ def insert_atomo(pre_AMKA,pre_eponimo,pre_tilefono,mode): #Εδώ γίνεται
                     atomo_eponimo = pre_eponimo
                 atomo_onoma = input('Να γίνει εισαγωγή του Όνόματος:\n')
                 if(mode!=3):
-                    atomo_tilefono = input('Να γίνει εισαγωγή του τηλεφώνου:\n')
+                    atomo_tilefono = str_len_check_loop('Να γίνει εισαγωγή του τηλεφώνου:\n',2)
                 else:
                     atomo_tilefono=pre_tilefono
                 atomo_email=input('Να γίνει εισαγωγή του email:\n')
                 atomo_odos=input('Να γίνει εισαγωγή της Οδός Κατοικείας του ατόμου:\n')
-                atomo_arithmos = input('Να γίνει εισαγωγή του Αριθμού Κατοικείας του ατόμου:\n')
+                atomo_arithmos = str_len_check_loop('Να γίνει εισαγωγή του Αριθμού Κατοικείας του ατόμου:\n',5)
                 atomo_poli=input('Να γίνει εισαγωγή της Πόλης:\n')
-                atomo_TK=input('Να γίνει εισαγωγή του ΤΚ:\n')
+                atomo_TK=str_len_check_loop('Να γίνει εισαγωγή του ΤΚ:\n',4)
                 values.extend((atomo_AMKA,atomo_onoma,atomo_eponimo,atomo_tilefono,atomo_email,atomo_odos,atomo_arithmos,atomo_poli,atomo_TK))
                 
                 insert1 = "INSERT INTO atomo(AMKA,Eponimo,Onoma,Tilefono,Email,Odos,Arithmos,Poli,TK) VALUES('"+atomo_AMKA+"','"+atomo_eponimo+"','"+atomo_onoma+"','"+atomo_tilefono+"','"+atomo_email+"','"+atomo_odos+"','"+atomo_arithmos+"','"+atomo_poli+"','"+atomo_TK+"');"
@@ -168,7 +205,7 @@ def insert_atomo(pre_AMKA,pre_eponimo,pre_tilefono,mode): #Εδώ γίνεται
                     
                 elif choice=='2':
                     
-                    prop_AFM = input('Να γίνει εισαγωγή του ΑΦΜ του εργαζόμενου:\n')
+                    prop_AFM = str_len_check_loop('Να γίνει εισαγωγή του ΑΦΜ του εργαζόμενου:\n',3)
                     prop_wage = input('Να γίνει εισαγωγή του ορομισθίου του εργαζόμενου:\n')
                     prop_bio = input('Να γίνει εισαγωγή του βιογραφικού του εργαζόμενου:\n')
                     values.extend((prop_AFM,prop_wage,prop_bio))
