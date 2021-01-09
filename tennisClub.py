@@ -103,9 +103,19 @@ def valid_gipedo_loop(msg):  #loop μέχρι να δοθεί Id διαθέσι�
             return idn
    
 def str_len_check(word_in,mode): #έλεγχος για ΑΜΚΑ (mode 1) τηλέφωνο (mode 2) ΑΦΜ (mode 3)  ΤΚ (mode 4) η  αριθμός κατοικείας (mode 5)
+    #Ακόμα πιο σημαντικός έλεγχος για τον ΑΜΚΑ αν υπάρχει ήδη από άλλο χρήστη ή όχι
+    global curs,con
     if mode==1:
         if len(word_in)==11 and word_in.isdigit():
-            return True
+            query= "SELECT * FROM atomo WHERE AMKA='"+word_in+"';"
+            curs.execute(query)
+            results = curs.fetchall()
+            if (len(results) == 0):  
+                return True
+            elif (len(results) == 1):
+                print("Αυτό το ΑΜΚΑ υπάρχει στη βάση μας. Δεν γίνεται δύο διαφορετικά άτομα να έχουν το ίδιο αμκα")
+
+            
     if mode==2:
         if len(word_in)==10 and word_in.isdigit():
             return True
@@ -1059,38 +1069,66 @@ def show_the_person_with(amka):
     query = "SELECT * FROM atomo WHERE amka= '"+str(amka)+"'"
     curs.execute(query)
     results = curs.fetchall()
-    t = PrettyTable(['ΑΜΚΑ(1)', 'ΕΠΩΝΥΜΟ(2)','ONOMA(3)','ΤΗΛΕΦΩΝΟ(4)','EMAIL(5)','ΟΔΟΣ(6)','ΑΡΙΘΜΟΣ(7)','ΠΟΛΗ(8)','ΤΚ(9)'])    
-    for result in results:
-        t.add_row([result[0],result[1],result[2],result[3],result[4],result[5],result[6],result[7],result[8]])
-    print(t)
-    print("Ποιά στήλης θέλετε να αλλάξετε το περιεχόμενο;")
-    column = input("")
+    
     while (True):
+        t = PrettyTable(['ΑΜΚΑ(1)', 'ΕΠΩΝΥΜΟ(2)','ONOMA(3)','ΤΗΛΕΦΩΝΟ(4)','EMAIL(5)','ΟΔΟΣ(6)','ΑΡΙΘΜΟΣ(7)','ΠΟΛΗ(8)','ΤΚ(9)'])    
+        for result in results:
+            t.add_row([result[0],result[1],result[2],result[3],result[4],result[5],result[6],result[7],result[8]])
+        print(t)
+        print("Ποιά στήλης θέλετε να αλλάξετε το περιεχόμενο;")
+        column = input("")
         try:
             print("Η προηγούμενη τιμή ήταν: ", results[0][int(column)-1])
             if (column == "1"):
                 new_value = str_len_check_loop('Να γίνει εισαγωγή του ΑΜΚΑ: ',1)
+                amka= results[0][int(column)-1]
+                column_name = "AMKA"
             elif (column == "2"):
                 new_value = input('Να γίνει εισαγωγή του Επώνυμου: ')
+                column_name = "Eponimo"
             elif (column == "3"):
                 new_value = input('Να γίνει εισαγωγή του Όνόματος: ')
+                column_name = "Onoma"
             elif (column == "4"):
                 new_value = str_len_check_loop('Να γίνει εισαγωγή του τηλεφώνου: ',2)
+                column_name = "Tilefono"
             elif (column == "5"):
                 new_value = input('Να γίνει εισαγωγή του email: ')
+                column_name = "Email"
             elif (column == "6"):
                 new_value = input('Να γίνει εισαγωγή της Οδού Κατοικείας του ατόμου: ')
+                column_name = "Odos"
             elif (column == "7"):
                 new_value = str_len_check_loop('Να γίνει εισαγωγή του Αριθμού Κατοικείας του ατόμου: ',5)
+                column_name = "Arithmos"
             elif (column == "8"):
                 new_value = input('Να γίνει εισαγωγή της Πόλης:\n')
+                column_name = "Poli"
             elif (column == "9"):
                 new_value = str_len_check_loop('Να γίνει εισαγωγή του ΤΚ:\n',4)
-            else:
-                print("Λάθος Επιλογή")
-                break
-        except:
+                column_name = "TK"
+
+            query = "UPDATE `atomo` SET `"+column_name+"` = '"+new_value+"' WHERE `atomo`.`AMKA` = "+str(amka)+""
+            curs.execute(query)
+            con.commit()
+
             break
+        except:
+                print("Λάθος Επιλογή")
+                print(err)
+                return
+    if (column == "1"):
+        query = "SELECT * FROM atomo WHERE amka= '"+new_value+"'"
+    else:
+        query = "SELECT * FROM atomo WHERE amka= '"+str(amka)+"'"
+    
+    curs.execute(query)
+    results = curs.fetchall()
+    print("Μετά την αλλαγή")
+    t = PrettyTable(['ΑΜΚΑ', 'ΕΠΩΝΥΜΟ','ONOMA','ΤΗΛΕΦΩΝΟ','EMAIL','ΟΔΟΣ','ΑΡΙΘΜΟΣ','ΠΟΛΗ','ΤΚ'])    
+    for result in results:
+        t.add_row([result[0],result[1],result[2],result[3],result[4],result[5],result[6],result[7],result[8]])
+    print(t)
     return 
 
             
