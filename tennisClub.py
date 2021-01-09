@@ -772,7 +772,25 @@ def tounament_confirm(onoma,im_enarxis,im_lixis,orio_omadon,paiktes_se_omada):
         return True
     return False
     
-
+def show_tournament():
+    global curs,con
+    print("Ολα τα τουρνουά είναι τα εξής")
+    query = " SELECT * FROM tournoua"
+    eidos = ''
+    curs.execute(query)
+    results=curs.fetchall()
+    for result in results:
+        if (result[5] == 1):
+            eidos = "Ατομικό"
+        elif (result[5] == 2):
+            eidos = "Ομαδικό"
+        print("----------------------------------")
+        print("ID:",result[0],"'Ονομα:",result[1], "Είδος:",eidos)
+        print("Έναρξη:",result[2],"'Λήξη:",result[3])
+        print("Ομάδες που μπορούν να γραφτούν:",result[4])
+        print("Ομάδες που έχουν γραφτεί:","TO BE DONE")
+    print("----------------------------------")
+    return
 
 
 
