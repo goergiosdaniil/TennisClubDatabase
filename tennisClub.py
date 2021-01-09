@@ -410,7 +410,7 @@ def kratisi_input(onoma,eponymo):
     print("Για πότε θέλετε να γίνει κράτηση;")
     print("Σε μορφή χρονιά-μήνας-ημέρα.")
     print("πχ σήμερα έχουμε:",today)
-    input_date = date_check_for_kratisi()#Γίνεται έλεγχος για την εγκυρότητα της ημερομηνίας
+    input_date = date_check_for_kratisi('Να γίνει εισαγωγή της ημερομηνίας  σε μορφή YYYY-MM-DD:\n',"Δεν μπορείτε να κάνετε κράτηση σε παλαιότερη ημερομηνία από τη σημερινή",'0','')#Γίνεται έλεγχος για την εγκυρότητα της ημερομηνίας
     print("Η κράτηση θα γίνει για ",input_date)
     now = datetime.datetime.now()
     current_time = now.strftime("%H:%M")
@@ -474,15 +474,25 @@ def kratisi_overlap(date,time,dur,idn):
 
    
 
-def date_check_for_kratisi():#Ελέγχω αν είναι πριν τη σημερινή ημερομηνία
-    input_date = valid_date_loop('Να γίνει εισαγωγή της ημερομηνίας  σε μορφή YYYY-MM-DD:\n')
+def date_check_for_kratisi(msginput,msgoutput,compare,otherdate):#Ελέγχω αν είναι πριν τη σημερινή ημερομηνία. Με το compare ελέγχω αν είναι ένα κάνω σύγκριση με την ημερομηνία έναρξης
 
     while True:
+        input_date = valid_date_loop(msginput)#'Να γίνει εισαγωγή της ημερομηνίας  σε μορφή YYYY-MM-DD:\n'
         if (today <= strtodate(input_date)):
-            print("Σωστή ημερομηνία")
-            return (strtodate(input_date))
+            if (compare == '0'):
+
+                print("Σωστή ημερομηνία")
+                return (strtodate(input_date))
+            else:
+                print(strtodate(input_date),otherdate)
+                if (strtodate(input_date)<otherdate):
+                    print(strtodate(input_date),otherdate)
+                    print("Δεν μπορεί η ημερομηνία λήξης να είναι πριν την ημερομηνία έναρξης")
+                elif (strtodate(input_date)>otherdate):
+                    print("Σωστή ημερομηνία")
+                    return (strtodate(input_date))
         else:
-            print("Δεν μπορείτε να κάνετε κράτηση σε παλαιότερη ημερομηνία από τη σημερινή")
+            print(msgoutput)#"Δεν μπορείτε να κάνετε κράτηση σε παλαιότερη ημερομηνία από τη σημερινή"
 
     
 
@@ -708,6 +718,64 @@ def epipleon_menu(): #Ενα μενού για τις μη συχνές λειτ
             alter_atomo()
         if ans==' ':
             return
+
+def number_check(mode):#Ελέγχω αν επιλέγει μία από τις επιλογές που του δίνω
+
+    while True:
+        if (mode=="orio"):
+            orio = input("4,8,16,32,64\n")
+            if (int(orio) == 4 or int(orio) == 8 or int(orio) == 16 or int(orio) == 32 or int(orio) == 64):
+                return (int(orio))
+            else:
+                print("Μπορείτε να βάλετε μόνο 4 ή 8 ή 16 ή 32 ή 64")
+        elif (mode=="paiktes"):
+            paiktes = input("Είδος τουρνουά. 1 για ατομικό 2 για ομαδικό\n")
+            if (int(paiktes) == 1 or int(paiktes) == 2):
+                return (int(paiktes))
+            else:
+                print("Μπορείτε να βάλετε μόνο 1 ή 2 ")
+
+            
+
+def create_tournament():#Εδώ δημιουργούμε το τουρνουά
+    global curs,con
+    print("Είστε έτοιμοι να δημιουργήσετε ένα τουρνουά")
+    print("Πως θα λέγετε αυτό το τουρνουά;")
+    onoma = input("")
+    im_enarxis = date_check_for_kratisi('Να γίνει εισαγωγή της ημερομηνίας εναρξης σε μορφή YYYY-MM-DD:\n','Δεν μπορεί η ημερομηνία έναρξης να είναι νωρίτερα από σήμερα','0','')
+    im_lixis = date_check_for_kratisi('Να γίνει εισαγωγή της ημερομηνίας λήξης σε μορφή YYYY-MM-DD:\n','Δεν μπορεί η ημερομηνία λήξης να είναι νωρίτερα από σήμερα','1',im_enarxis) 
+    print("Πόσες ομάδες να μπουν στο τουρνουά")
+    orio_omadon = number_check("orio") 
+    paiktes_se_omada = number_check("paiktes") 
+    confirm = tounament_confirm(onoma,im_enarxis,im_lixis,orio_omadon,paiktes_se_omada)
+    if (confirm):
+        query = "INSERT INTO `tournoua` (`Id`, `Onoma`, `Hm_Enarxis`, `Hm_Lixis`, `Orio_Omadon`, `Paiktes_se_omada`) VALUES (NULL, '"+onoma+"', '"+str(im_enarxis)+"', '"+str(im_lixis)+"', '"+str(orio_omadon)+"', '"+str(paiktes_se_omada)+"')"
+        curs.execute(query)
+        con.commit()
+    ans=input("Πατήστε Ν για να εισάγετε κι αλλο τουρνουα, άλλο κουμπί για επιστροφή στο αρχικό μενού: ")
+    if(ans!="Ν" or ans!="N"):
+        return
+
+
+def tounament_confirm(onoma,im_enarxis,im_lixis,orio_omadon,paiktes_se_omada):
+    print("Τα στοιχεία του τουρνουά που πάτε να δημιουργήσετε είναι")
+    print("Ονομα:",onoma)
+    print("Ημερομηνία Έναρξης:",im_enarxis)
+    print("Ημερομηνία Λήξης:",im_lixis)
+    print("Οριο Ομάδων",orio_omadon)
+    if (paiktes_se_omada == 1 ):
+        print("Είδος Τουρνουά","Ατομικό")
+    elif (paiktes_se_omada == 2 ):
+        print("Είδος Τουρνουά","Ομαδικό")
+    inp = input("Σωστά; Ν(αι) ή Ο(χι): ")
+    if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or english
+        return True
+    return False
+    
+
+
+
+
 
 def tournoua_menu(): #Μενού για τα τουρνουά
     while True:
