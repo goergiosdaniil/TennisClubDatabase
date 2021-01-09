@@ -1,6 +1,6 @@
 import mysql.connector
 from mysql.connector import errorcode
-
+from prettytable import PrettyTable
 import os #Αυτό χρειάζεται για το dotenv. 
 from os.path import join, dirname
 from dotenv import load_dotenv #Το dotenv χρειάζεται για να μπορούμε να τραβάμε τα στοιχεία για τη βάση και να μην φαίνονται στο git
@@ -181,7 +181,7 @@ def insert_atomo(pre_AMKA,pre_eponimo,pre_tilefono,mode,tourmode): #Εδώ γί�
                 else:
                     atomo_AMKA = pre_AMKA
                 if(mode!=2):
-                    atomo_eponimo = input('Να γίνει εισαγωγή του Επόνυμου:\n')
+                    atomo_eponimo = input('Να γίνει εισαγωγή του Επώνυμου:\n')
                 else:
                     atomo_eponimo = pre_eponimo
                 atomo_onoma = input('Να γίνει εισαγωγή του Όνόματος:\n')
@@ -190,7 +190,7 @@ def insert_atomo(pre_AMKA,pre_eponimo,pre_tilefono,mode,tourmode): #Εδώ γί�
                 else:
                     atomo_tilefono=pre_tilefono
                 atomo_email=input('Να γίνει εισαγωγή του email:\n')
-                atomo_odos=input('Να γίνει εισαγωγή της Οδός Κατοικείας του ατόμου:\n')
+                atomo_odos=input('Να γίνει εισαγωγή της Οδού Κατοικείας του ατόμου:\n')
                 atomo_arithmos = str_len_check_loop('Να γίνει εισαγωγή του Αριθμού Κατοικείας του ατόμου:\n',5)
                 atomo_poli=input('Να γίνει εισαγωγή της Πόλης:\n')
                 atomo_TK=str_len_check_loop('Να γίνει εισαγωγή του ΤΚ:\n',4)
@@ -323,7 +323,6 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
             #Εχω όνομα αρα κάνω αντίστοιχο query. Κάνω ελέγχους αν είναι πάνω από ένας με αυτό το όνομα
             eponimo= ans.capitalize()
             curs.execute("SELECT * FROM `atomo` WHERE Eponimo='"+eponimo+"';")
-            print(eponimo) 
             results=curs.fetchall()
             if (len(results) == 0):            
                 print("Δεν υπάρχει παίκτης με αυτό το επόνυμο. Να γίνει προσθήκη νεου ατόμου με αυτό το στοιχείο; ")
@@ -332,8 +331,6 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
                     insert_atomo("",ans,"",2,"")
                   
                 continue
-                #kratisi()
-                #exit()
             elif (len(results) == 1):
                 print("Ο παίκτης είναι: ")
                 print(results[0][1],results[0][2])
@@ -346,8 +343,6 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
                     print(amka)
                 else:
                     continue
-                    #kratisi()
-                    #exit()
             elif (len(results) > 1):
                 print("Εχουμε πάνω από έναν παίκτη")
                 print("Ποιον παίκτη θέλετε;")
@@ -360,8 +355,6 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
                 selection = input("Αν δεν είναι κανένας πατήστε κενό και μετά enter")
                 if (selection == " " or selection == ""):
                     continue
-                    #kratisi()
-                    #exit()
                 elif (selection.isdigit()):
                     amka = results[int(selection)][0]
                     onoma = results[int(selection)][1]
@@ -784,34 +777,36 @@ def add_team_in_tournament():
     #Να ελέγχουμε αν μπορεί να γραφτεί στο τουρνουά που θέλει. Γιατί πχ μπορεί να έχει ήδη γίνει η κλήρωση
     print("Ενδιαφέρεται για ατομικό (1) ή ομαδικό (2) τουρνουά")
     eidos = input("")
-    query = " SELECT * FROM tournoua WHERE paiktes_se_omada='"+eidos+"';"
+    query = " SELECT * FROM tournoua WHERE paiktes_se_omada='"+eidos+"';"#Να προσθέσω έλεγχο αν μπορεί να γραφτεί
+
     curs.execute(query)
     results = curs.fetchall()
-    counter = 0
     for result in results:
         print("----------------------------------")
         print("ID:",result[0],"'Ονομα:",result[1], "Είδος:",eidos)
         print("Έναρξη:",result[2],"Λήξη:",result[3])
         print("Ομάδες που μπορούν να γραφτούν:",result[4])
         print("Ομάδες που έχουν γραφτεί:","TO BE DONE")
-
+    selection = input("Επιλέξτε ποιο τουρνουά θέλετε. Αν τελικά δεν είναι κανένα πατήστε το κενό ")
+    if (selection == " " or selection == ""):
+        return
+    elif (selection.isdigit()):#ΘΕΛΕΙ ΔΙΟΡΘΩΣΗ ΓΙΑΤΙ ΑΝ ΒΑΛΕΙΣ ΛΑΘΟΣ ΝΟΥΜΕΡΟ ΓΙΝΕΤΑΙ ΧΑΟΣ
+        id_tournoua=selection
+    query = ""
     #Να βρούμε αν είναι ήδη γραμμένος παίκτης. Να βρούμε ποιος είναι και να παίρνουμε το αμκα του
-    
-    #Αν είναι δύο προφανώς και των 2
-    #Να κάνουμε καταχώρηση στη βάση στον πίνακα ομάδα
     if (eidos == "1"):
         player_amka_1 = add_player_in_omada()
         print("Το ΑΜΚΑ του πρώτου παίκτη είναι:",player_amka_1)
+        query = "INSERT INTO `omada` (`Id`, `AMKA_1`, `AMKA_2`, `Id_tournoua`) VALUES (NULL, '"+str(player_amka_1)+"', NULL, '"+str(id_tournoua)+"')"
     elif(eidos == "2"):
         player_amka_1 = add_player_in_omada()
         player_amka_2 = add_player_in_omada()
         print("Το ΑΜΚΑ του πρώτου παίκτη είναι:",player_amka_1)
         print("Το ΑΜΚΑ του δεύτερου παίκτη είναι:",player_amka_2)
-    
-    
-
-    
-    
+        query = "INSERT INTO `omada` (`Id`, `AMKA_1`, `AMKA_2`, `Id_tournoua`) VALUES (NULL, '"+str(player_amka_1)+"', '"+str(player_amka_2)+"', '"+str(id_tournoua)+"')"
+    curs.execute(query)
+    con.commit()#Κάποιο error handling
+    print("Θεωρητικά δημιουργήθηκε η συμμετοχή")
     return
 
 def add_player_in_omada():
@@ -855,17 +850,15 @@ def add_player_in_omada():
                     inp = input("Πατήστε Ν για ναι, άλλο κουμπί για όχι: ")
                     if(inp=="Ν" or inp=="N"):
                         final_amka= str_len_check_loop('Να γίνει εισαγωγή του ΑΜΚΑ\n',1)
-                        insert_atomo(final_amka,"","",1,"")
-                    continue
+                        insert_atomo(final_amka,"","",1,"tour")
+                        return final_amka
                 elif (len(results) == 1):
                     print("Ο παίκτης είναι: ")
                     print(results[0][1],results[0][2])
                     inp = input("Σωστό. Ν(αι) ή Ο(χι): ")
                     if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or engilsh
                         amka = results[0][0]
-                        onoma = results[0][1]
-                        eponymo = results[0][2]
-                        final_amka = amka
+                        return amka
                     else:
                         continue
                 elif (len(results) > 1):
@@ -882,13 +875,228 @@ def add_player_in_omada():
                         continue
                     elif (selection.isdigit()):
                         amka = results[int(selection)][0]
-                        onoma = results[int(selection)][1]
-                        eponymo = results[int(selection)][2]
-                final_amka=amka
-                return (final_amka)
+                        return amka
+        else:
+            #Εχω όνομα αρα κάνω αντίστοιχο query. Κάνω ελέγχους αν είναι πάνω από ένας με αυτό το όνομα
+            eponimo= ans.capitalize()
+            curs.execute("SELECT * FROM `atomo` WHERE Eponimo='"+eponimo+"';")
+            results=curs.fetchall()
+            if (len(results) == 0):            
+                print("Δεν υπάρχει παίκτης με αυτό το επόνυμο. Να γίνει προσθήκη νεου ατόμου ; ")
+                inp = input("Πατήστε Ν για ναι, άλλο κουμπί για όχι: ")
+                if(inp=="Ν" or inp=="N"):
+                    final_amka= str_len_check_loop('Να γίνει εισαγωγή του ΑΜΚΑ\n',1)
+                    insert_atomo(final_amka,"","",1,"tour")
+                    return final_amka   
+                continue
+            elif (len(results) == 1):
+                print("Ο παίκτης είναι: ")
+                print(results[0][1],results[0][2])
+                inp = input("Σωστό. Ν(αι) ή Ο(χι): ")
+                if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or engilsh
+                    amka = results[0][0]
+                    return  amka
+                else:
+                    continue
+            elif (len(results) > 1):
+                print("Εχουμε πάνω από έναν παίκτη")
+                print("Ποιον παίκτη θέλετε;")
+                counter = 0
+                print("Ε Όνομα Επώνυμο")
+                for result in  results :
+                    print(counter,result[1],result[2])
+                    counter = counter + 1
+                print("Ποιος είναι ο αριθμός του παίκτη;")
+                selection = input("Αν δεν είναι κανένας πατήστε κενό και μετά enter")
+                if (selection == " " or selection == ""):
+                    continue
+                elif (selection.isdigit()):
+                    amka = results[int(selection)][0]
+                    return amka
         exit
+
+
+
+def alter_atomo(): #Να αλλάξει στοιχεία για έναν χρήστη
+    global curs,con
+    print("Θέλετε να αλλάξετε για έναν συγκεκριμένο χρήστη(1) ή θέλετε αρχικά να τους δείτε όλους;(2)")
+    while True:
+        ans =input()
+        if ans=='1':
+            amka = select_apo_stoixeia()
+            show_the_person_with(amka)
+        elif ans=='2':
+            amka = select_apo_all_atoma()
+            show_the_person_with(amka)
+        elif ans==' ':
+            return
+        break
+
+
+def select_apo_stoixeia():
+    global curs,con
+    while True:  
+        ans = input("Βάλτε εδώ τον ΑΜΚΑ, το τηλέφωνο ή το Επώνυμο του Παίκτη.\n")
+        if(ans.isdigit()):#Εδώ ελέγχω αν είναι νούμερο ή γράμματα
+            if (len(str(ans)) == 11):#Αυτό είναι το μέγεθος του ΑΜΚΑ. Εδώ ελέγχω αν έχω αυτόν τον ΑΜΚΑ στη βάση
+                curs.execute("SELECT * FROM `atomo` WHERE AMKA='"+ans+"';")
+                results=curs.fetchall()
+                if (len(results) == 0):#ΛΕΙΤΟΥΡΓΕΙ ΣΩΣΤΑ
+                    print("Δεν υπάρχει παίκτης με αυτό το αμκα.  ")
+                    continue                
+                elif (len(results) == 1):#Λειτουργεί σίγουρα
+                    print("Ο παίκτης είναι: ")
+                    print(results[0][1],results[0][2])
+                    inp = input("Σωστό; Ν(αι) ή Ο(χι): ")
+                    if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or engilsh
+                        amka = results[0][0]
+                        return amka
+                    else:
+                        continue
+            elif(len(str(ans)) == 10):#Αυτό είναι το μέγεθος του τηλεφώνου και ελέγχω αν το έχω στη βάση αλλά και πόσες φορές το έχω. Αν το έχω πάνω από μία δίνω επιλογές για το ποιον θέλει
+                curs.execute("SELECT * FROM `atomo` WHERE Tilefono='"+ans+"';")
+                results=curs.fetchall()
+                if (len(results) == 0):
+                    print("Δεν υπάρχει παίκτης με αυτό το τηλέφωνο. Να γίνει προσθήκη νεου ατόμου ; ")
+                    inp = input("Πατήστε Ν για ναι, άλλο κουμπί για όχι: ")
+                    if(inp=="Ν" or inp=="N"):
+                        final_amka= str_len_check_loop('Να γίνει εισαγωγή του ΑΜΚΑ\n',1)
+                        insert_atomo(final_amka,"","",1,"tour")
+                        return final_amka
+                elif (len(results) == 1):
+                    print("Ο παίκτης είναι: ")
+                    print(results[0][1],results[0][2])
+                    inp = input("Σωστό. Ν(αι) ή Ο(χι): ")
+                    if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or engilsh
+                        amka = results[0][0]
+                        return amka
+                    else:
+                        continue
+                elif (len(results) > 1):
+                    print("Εχουμε πάνω από έναν παίκτη")
+                    print("Ποιον παίκτη θέλετε;")
+                    counter = 0
+                    print("Ε Όνομα Επώνυμο")
+                    for result in  results :
+                        print(counter,result[1],result[2])
+                        counter = counter + 1
+                    print("Ποιος είναι ο αριθμός του παίκτη;")
+                    selection = input("Αν δεν είναι κανένας πατήστε κενό και μετά enter ")
+                    if (selection == " " or selection == ""):
+                        continue
+                    elif (selection.isdigit()):
+                        amka = results[int(selection)][0]
+                        return amka
+        else:
+            #Εχω όνομα αρα κάνω αντίστοιχο query. Κάνω ελέγχους αν είναι πάνω από ένας με αυτό το όνομα
+            eponimo= ans.capitalize()
+            curs.execute("SELECT * FROM `atomo` WHERE Eponimo='"+eponimo+"';")
+            results=curs.fetchall()
+            if (len(results) == 0):            
+                print("Δεν υπάρχει παίκτης με αυτό το επόνυμο. Να γίνει προσθήκη νεου ατόμου ; ")
+                inp = input("Πατήστε Ν για ναι, άλλο κουμπί για όχι: ")
+                if(inp=="Ν" or inp=="N"):
+                    final_amka= str_len_check_loop('Να γίνει εισαγωγή του ΑΜΚΑ\n',1)
+                    insert_atomo(final_amka,"","",1,"tour")
+                    return final_amka   
+                continue
+            elif (len(results) == 1):
+                print("Ο παίκτης είναι: ")
+                print(results[0][1],results[0][2])
+                inp = input("Σωστό. Ν(αι) ή Ο(χι): ")
+                if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or engilsh
+                    amka = results[0][0]
+                    return  amka
+                else:
+                    continue
+            elif (len(results) > 1):
+                print("Εχουμε πάνω από έναν παίκτη")
+                print("Ποιον παίκτη θέλετε;")
+                counter = 0
+                print("Ε Όνομα Επώνυμο")
+                for result in  results :
+                    print(counter,result[1],result[2])
+                    counter = counter + 1
+                print("Ποιος είναι ο αριθμός του παίκτη;")
+                selection = input("Αν δεν είναι κανένας πατήστε κενό και μετά enter")
+                if (selection == " " or selection == ""):
+                    continue
+                elif (selection.isdigit()):
+                    amka = results[int(selection)][0]
+                    return amka
+        exit
+
+
+def select_apo_all_atoma():#Τους δείχνει όλους και επιστρέφει τον αμκα ενός συγκεκριμένου ατόμου
+    global curs,con
+    query = "SELECT * FROM atomo"
+    curs.execute(query)
+    results = curs.fetchall()
+    t = PrettyTable(['Προσ.ID','ΑΜΚΑ', 'ΕΠΩΝΥΜΟ','ONOMA','ΤΗΛΕΦΩΝΟ','EMAIL','ΟΔΟΣ','ΑΡΙΘΜΟΣ','ΠΟΛΗ','ΤΚ'])    
+    counter = 0
+    for result in results:
+        t.add_row([counter,result[0],result[1],result[2],result[3],result[4],result[5],result[6],result[7],result[8]])
+        counter = counter + 1
+    print(t)
+    print("Ποιο είναι το προσωρινό id του παίκτη που θέλετε να αλλάξετε;")
+    while True:
+        id = input("")
+        if (id.isdigit()):
+            if(int(id)>=0 and int(id)<counter):
+                amka = results[int(id)][0]
+                break
+            else:
+                print("Δεν έχετε επιλέξει σωστό νούμερο")
+        else:
+            print("Δεν έχετε επιλέξει σωστό νούμερο")
+
+    
+    return amka
+
+
+def show_the_person_with(amka):
+    global curs,con
+    query = "SELECT * FROM atomo WHERE amka= '"+str(amka)+"'"
+    curs.execute(query)
+    results = curs.fetchall()
+    t = PrettyTable(['ΑΜΚΑ(1)', 'ΕΠΩΝΥΜΟ(2)','ONOMA(3)','ΤΗΛΕΦΩΝΟ(4)','EMAIL(5)','ΟΔΟΣ(6)','ΑΡΙΘΜΟΣ(7)','ΠΟΛΗ(8)','ΤΚ(9)'])    
+    for result in results:
+        t.add_row([result[0],result[1],result[2],result[3],result[4],result[5],result[6],result[7],result[8]])
+    print(t)
+    print("Ποιά στήλης θέλετε να αλλάξετε το περιεχόμενο;")
+    column = input("")
+    while (True):
+        try:
+            print("Η προηγούμενη τιμή ήταν: ", results[0][int(column)-1])
+            if (column == "1"):
+                new_value = str_len_check_loop('Να γίνει εισαγωγή του ΑΜΚΑ: ',1)
+            elif (column == "2"):
+                new_value = input('Να γίνει εισαγωγή του Επώνυμου: ')
+            elif (column == "3"):
+                new_value = input('Να γίνει εισαγωγή του Όνόματος: ')
+            elif (column == "4"):
+                new_value = str_len_check_loop('Να γίνει εισαγωγή του τηλεφώνου: ',2)
+            elif (column == "5"):
+                new_value = input('Να γίνει εισαγωγή του email: ')
+            elif (column == "6"):
+                new_value = input('Να γίνει εισαγωγή της Οδού Κατοικείας του ατόμου: ')
+            elif (column == "7"):
+                new_value = str_len_check_loop('Να γίνει εισαγωγή του Αριθμού Κατοικείας του ατόμου: ',5)
+            elif (column == "8"):
+                new_value = input('Να γίνει εισαγωγή της Πόλης:\n')
+            elif (column == "9"):
+                new_value = str_len_check_loop('Να γίνει εισαγωγή του ΤΚ:\n',4)
+            else:
+                print("Λάθος Επιλογή")
+                break
+        except:
+            break
+    return 
+
+            
             
 
+    
 
 
 def tournoua_menu(): #Μενού για τα τουρνουά
@@ -910,6 +1118,9 @@ def tournoua_menu(): #Μενού για τα τουρνουά
             create_tournament()
         if ans=='4':
             insert_scores_in_tournament()
+        if ans=='5':
+            draw_tournament()
+
         if ans==' ':
             return
 
@@ -947,6 +1158,7 @@ def menu(): #Σε αυτό το μενού πρέπει να σχεδιάσου�
 
 def main():#Εδώ μέσα βάζεις όποια συνάρτηση θέλεις να γίνει.
     connect_to_db()
+    #alter_atomo()
     menu()
     con.close()
 
