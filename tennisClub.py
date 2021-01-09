@@ -807,22 +807,20 @@ def tounament_confirm(onoma,im_enarxis,im_lixis,orio_omadon,paiktes_se_omada):
     
 def show_tournament():
     global curs,con
-    print("Ολα τα τουρνουά είναι τα εξής")
+    t = PrettyTable(['ID','Όνομα','Είδος','Έναρξη','Λήξη','Όριο ομάδων','Έχουν γραφτεί']) 
     query = " SELECT * FROM tournoua"
     eidos = ''
     curs.execute(query)
     results=curs.fetchall()
+    print(results)
     for result in results:
         if (result[5] == 1):
             eidos = "Ατομικό"
         elif (result[5] == 2):
             eidos = "Ομαδικό"
-        print("----------------------------------")
-        print("ID:",result[0],"'Ονομα:",result[1], "Είδος:",eidos)
-        print("Έναρξη:",result[2],"Λήξη:",result[3])
-        print("Ομάδες που μπορούν να γραφτούν:",result[4])
-        print("Ομάδες που έχουν γραφτεί:","TO BE DONE")
-    print("----------------------------------")
+        t.add_row([result[0],result[1],eidos,result[2],result[3],result[4],"TO BE DONE"])
+    print(t)
+
     return
 
 
@@ -852,16 +850,32 @@ def add_team_in_tournament():
     if (eidos == "1"):
         player_amka_1 = add_player_in_omada()
         print("Το ΑΜΚΑ του πρώτου παίκτη είναι:",player_amka_1)
-        query = "INSERT INTO `omada` (`Id`, `AMKA_1`, `AMKA_2`, `Id_tournoua`) VALUES (NULL, '"+str(player_amka_1)+"', NULL, '"+str(id_tournoua)+"')"
+        query = "INSERT INTO `omada` (`Id`, `AMKA_1`, `AMKA_2`, `Id_tournoua`) VALUES (NULL, '"+str(player_amka_1)+"', NULL, '"+str(id_tournoua)+"');"
     elif(eidos == "2"):
         player_amka_1 = add_player_in_omada()
         player_amka_2 = add_player_in_omada()
         print("Το ΑΜΚΑ του πρώτου παίκτη είναι:",player_amka_1)
         print("Το ΑΜΚΑ του δεύτερου παίκτη είναι:",player_amka_2)
-        query = "INSERT INTO `omada` (`Id`, `AMKA_1`, `AMKA_2`, `Id_tournoua`) VALUES (NULL, '"+str(player_amka_1)+"', '"+str(player_amka_2)+"', '"+str(id_tournoua)+"')"
+        query = "INSERT INTO `omada` (`Id`, `AMKA_1`, `AMKA_2`, `Id_tournoua`) VALUES (NULL, '"+str(player_amka_1)+"', '"+str(player_amka_2)+"', '"+str(id_tournoua)+"');"
     curs.execute(query)
     con.commit()#Κάποιο error handling
-    print("Θεωρητικά δημιουργήθηκε η συμμετοχή")
+
+    #Να εκτυπώνει το όνομα του τουρνουά και τα ονόματα των παικτών. 
+    #Με λίγο πιο περίπλοκη sql
+    if (eidos == "1"):
+        query = "SELECT tournoua.onoma, tournoua.Hm_Enarxis, atomo.onoma,atomo.eponimo FROM `omada` INNER JOIN tournoua ON omada.Id_tournoua = tournoua.Id INNER JOIN atomo ON atomo.AMKA = omada.AMKA_1 WHERE AMKA_1 = '"+str(player_amka_1)+"' AND Id_tournoua = '"+str(id_tournoua)+"';"
+        curs.execute(query)
+        results = curs.fetchall()
+        t = PrettyTable(['Ονομα Τουρνουά','Ημ.Εναρξης','Παίκτης ']) 
+        t.add_row([results[0][0],results[0][1],results[0][2]+" "+results[0][3]])
+    elif(eidos == "2"):
+        query = "SELECT tournoua.onoma, tournoua.Hm_Enarxis, atomo.Onoma, atomo.Eponimo, atomo2.Onoma, atomo2.Eponimo FROM `omada` INNER JOIN tournoua ON omada.Id_tournoua = tournoua.Id INNER JOIN atomo on atomo.AMKA = omada.AMKA_1 INNER JOIN atomo AS atomo2 on atomo2.AMKA = omada.AMKA_2 WHERE AMKA_1 = '"+str(player_amka_1)+"' AND AMKA_2 = '"+str(player_amka_2)+"' AND Id_tournoua = '"+str(id_tournoua)+"';"
+        curs.execute(query)
+        results = curs.fetchall()
+        t = PrettyTable(['Ονομα Τουρνουά','Ημ.Εναρξης','Παίκτης 1','Παίκτης 2']) 
+        t.add_row([results[0][0],results[0][1],results[0][2]+" "+results[0][3],results[0][4]+" "+results[0][5]])
+
+    print(t)
     return
 
 def add_player_in_omada():
@@ -1184,13 +1198,19 @@ def show_the_person_with(amka):
 
 def tournoua_menu(): #Μενού για τα τουρνουά
     while True:
-        print('Για να δείτε όλα τα τουρνουά πατήστε το 0')
-        print('Για να προσθέσετε παίκτες σε τουρνουά πατήστε το 1')
-        print('Για αλλαγή στοιχείων τουρνουά πατήστε το 2')
-        print('Για δημιουργία τουρνουά πατήστε το 3')
-        print('Για να προσθέσετε τα αποτελέσματα αγώνων πατήστε το 4')
-        print('Για να κάνετε την κλήρωση κάποιου τουρνουά πατήστε το 5')
-        ans =input()
+        print("Τουρνουά")
+        t = PrettyTable(['Επιλογή','Περιγραφή',]) 
+        t.add_row([0,"Δείτε όλα τα τουρνουά"])
+        t.add_row([1,"Προσθέστε παίκες σε σε τουρνουά"])
+        t.add_row([2,"Αλλαγή στοιχείων τουρνουά"])
+        t.add_row([3,"Δημιουργήστε καινούργιο τουρνουά"])
+        t.add_row([4,"Καταχώρυση αποτελέσματος αγώνα τουρνουά"])
+        t.add_row([5,"Κάντε την κλήρωση τουρνουά"])
+        t.add_row(["Κενό","Έξοδος"])
+        print(t)
+        print("Ανάλογα με το ποια λειτουργία θέλετε επιλέξτε το αντίστοιχο νούμερο")
+        print("Αν θέλετε να κλείσετε την εφαρμογή πατήστε το κενό και μετά το enter")
+        ans =input("Επιλογή: ")
         if ans=='0':
             show_tournament()    
         if ans=='1':
@@ -1212,15 +1232,20 @@ def tournoua_menu(): #Μενού για τα τουρνουά
 def menu(): #Σε αυτό το μενού πρέπει να σχεδιάσουμε τις επιλογές
     print('Καλησπέρα!\n')
     while True:
-        print('Για να κάνετε καινούργια κράτηση πατήστε το 1')
-        print('Για να κάνετε αλλαγή σε κράτηση πατήστε το 2')
-        print('Για να προσθέσετε καινούργιο παίκτη πατήστε το 3')
-        print('Περισσότερες πληροφορίες για τα τουρνουά στο 4')
-        print('Για να δείτε το πρόγραμμα πατήστε το 5')
-        print('Περισσότερες πληροφορίες για τα γκρουπ εκμάθησης στο 6')
-        print('Περισσότερες λειτουργίες στο 7')
-        print('Για έξοδο πατήστε κενό και μετά enter')
-        ans =input()
+        print("Κεντρικό Μενού")
+        t = PrettyTable(['Επιλογή','Περιγραφή',]) 
+        t.add_row([1,"Νέα κράτηση"])
+        t.add_row([2,"Αλλαγή σε κράτηση"])
+        t.add_row([3,"Καινούργιο παίκτη"])
+        t.add_row([4,"Τουρνουά"])
+        t.add_row([5,"Πρόγραμμα"])
+        t.add_row([6,"Γκρουπ Εκμάθησης"])
+        t.add_row([7,"Περισσότερα"])
+        t.add_row(["Κενό","Έξοδος"])
+        print(t)
+        print("Ανάλογα με το ποια λειτουργία θέλετε επιλέξτε το αντίστοιχο νούμερο")
+        print("Αν θέλετε να κλείσετε την εφαρμογή πατήστε το κενό και μετά το enter")
+        ans =input("Επιλογή: ")
                    
         if ans=='1':
             kratisi()
@@ -1241,7 +1266,6 @@ def menu(): #Σε αυτό το μενού πρέπει να σχεδιάσου�
 
 def main():#Εδώ μέσα βάζεις όποια συνάρτηση θέλεις να γίνει.
     connect_to_db()
-    #alter_atomo()
     menu()
     con.close()
 
