@@ -372,7 +372,7 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
             kratisi_insert(amka,onoma,eponymo)
 
         ans=input("Πατήστε Ν για να εισάγετε κι αλλη κράτηση, άλλο κουμπί για επιστροφή στο αρχικό μενού: ")
-        if(ans!="Ν" or ans!="N"):
+        if(ans!="Ν" or ans!="N" or ans!="n" or ans!="ν"):
             return
         
       
@@ -380,52 +380,80 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
 def kratisi_insert(amka,onoma,eponymo):
     global curs,con
 
-    (input_date,input_time,input_diarkeia,kostos,selected_option_for_gipedo,selected_gipedo_id,selected_gipedo_name) = kratisi_input(onoma,eponymo)
+    (input_date,input_time,input_diarkeia,kostos,gipedo_id,selected_gipedo_name) = kratisi_input(onoma,eponymo)
     final_datetime = str(input_date)+" "+str(input_time)
-    confirm = kratisi_confirm(input_date,input_time,input_diarkeia,kostos,selected_option_for_gipedo,selected_gipedo_id,selected_gipedo_name,onoma,eponymo,final_datetime)
+    confirm = kratisi_confirm(input_date,input_time,input_diarkeia,kostos,gipedo_id,selected_gipedo_name,onoma,eponymo,final_datetime)
     if(confirm):
-        query = "INSERT INTO `kratisi` (`Id`, `Imerominia`, `Diarkeia`, `Kostos`, `Id_Gipedou`, `Id_Paikti`, `Id_Group`, `Id_Agona`) VALUES (NULL, '"+str(final_datetime)+"', '"+str(input_diarkeia)+"', '"+str(kostos)+"', '"+str(selected_gipedo_id)+"', '"+str(amka)+"', NULL, NULL)"
+        query = "INSERT INTO `kratisi` (`Id`, `Imerominia`, `Diarkeia`, `Kostos`, `Id_Gipedou`, `Id_Paikti`, `Id_Group`, `Id_Agona`) VALUES (NULL, '"+str(final_datetime)+"', '"+str(input_diarkeia)+"', '"+str(kostos)+"', '"+str(gipedo_id)+"', '"+str(amka)+"', NULL, NULL)"
         curs.execute(query)
         con.commit()
+        
+def display_kratisi(res):
+    hour=str(res[1].hour)
+    minute=str(res[1].minute)
+    if(len(hour)==1):
+        hour="0"+hour
+    if(len(minute)==1):
+        minute="0"+minute
+    print("Γήπεδο ID: "+str(res[3])+" Ημερομηνία: " +str(res[1].year)+"-"+str(res[1].month)+"-"+str(res[1].day)+" Ώρα: "+hour+":"+minute+"  διάρκεια: "+str(res[2])+" ώρες")
 
-
+    
     
 
 
 def kratisi_input(onoma,eponymo):
-    
+
     print("Η κράτηση θα γίνει για : ",onoma,eponymo)
+    (input_date,input_time,input_diarkeia) = input_time_for_kratisi()
+    kostos = str(int(input_diarkeia)*20) 
+    (gipedo_id,selected_gipedo_name) = gipedo_selection()
+    (check,res)=kratisi_overlap(input_date,input_time,input_diarkeia,gipedo_id)
+    
+    while check==True:
+            
+        print("Δεν μπορεί να γίνει η κράτηση για αυτο ο γήπεδο για αυτήν την ώρα, υπάρχει σύγκρουση με τις εξής κρατήσεις:")
+        for i in res:
+            display_kratisi(i)
+        print("Για να δείτε το πρόγραμμα κρατήσεων για την ίδια μέρα και ώρα για πατήστε 1, ενώ μόνο για την ίδια μέρα πατήστε 2")
+        print("Αλλιώς πατήστε οποιοδήποτε άλλο κουμπί.")
+        ans=input()
+        if(ans=='1'):
+            res2 = prog_query_return(4,gipedo_id,input_date,input_time)
+        if(ans=='2'):
+            res2 = prog_query_return(1,gipedo_id,input_date,"")
+        for i in res2:            
+            display_kratisi(i)
+
+        mode = input("Πατήστε 1 για να αλλάξετε μόνο την μέρα,ωρα και διάρκεια, 2 μόνο το γήπεδο.\n")
+        if(mode=='1'):
+            (input_date,input_time,input_diarkeia) = input_time_for_kratisi()
+        if(mode=='2'):
+            (gipedo_id,selected_gipedo_name) = gipedo_selection()
+        
+        (check,res)=kratisi_overlap(input_date,input_time,input_diarkeia,gipedo_id)    
+    return (input_date,input_time,input_diarkeia,kostos,gipedo_id,selected_gipedo_name)
+
+
+def input_time_for_kratisi():
+    
     print("Για πότε θέλετε να γίνει κράτηση;")
     print("Σε μορφή χρονιά-μήνας-ημέρα.")
     print("πχ σήμερα έχουμε:",today)
-    input_date = date_check_for_kratisi('Να γίνει εισαγωγή της ημερομηνίας  σε μορφή YYYY-MM-DD:\n',"Δεν μπορείτε να κάνετε κράτηση σε παλαιότερη ημερομηνία από τη σημερινή",'0','')#Γίνεται έλεγχος για την εγκυρότητα της ημερομηνίας
+    input_date_dt = date_check_for_kratisi('Να γίνει εισαγωγή της ημερομηνίας  σε μορφή YYYY-MM-DD:\n',"Δεν μπορείτε να κάνετε κράτηση σε παλαιότερη ημερομηνία από τη σημερινή",0,today)#Γίνεται έλεγχος για την εγκυρότητα της ημερομηνίας
+    input_date = input_date_dt.strftime('%Y-%m-%d')
     print("Η κράτηση θα γίνει για ",input_date)
     now = datetime.datetime.now()
     current_time = now.strftime("%H:%M")
     print("Η ώρα πρέπει να είναι σε μορφή ",current_time)
-    input_time = input("Τι ώρα θέλετε;")# Θα αλλάξει για να γίνεται έλεγχος εγκυρότητας 
-    input_diarkeia = input("Πόσες ώρες;")#  Θέλει συζήτηση αυτό
-    kostos = "0"
-
-    
-    #Εδώ χρειάζεται να γίνεται έλεγχος για τη διαθεσιμότητα των γηπέδων. Πρέπει να το αλλάξουμε αλλά για τώρα 5/01/2021 09:09 θα το αφήσω ως εξής
-    #Απλώς να ρωτάει σε ποιο γήπεδο θες
-    print("Αυτά είναι όλα τα διαθέσιμα γήπεδα μας")
-
-    curs.execute("SELECT * FROM `gipedo` WHERE Texn_Diathesimotita = '1'") 
-    results=curs.fetchall()
-    counter = 0
-    for result in results:
-        print("Enter ",counter,"for :",result[1], "Type of :",result[2])
-        counter = counter + 1
-    selected_option_for_gipedo = input("Για ποιο γήπεδο θέλετε;")
-    selected_gipedo_id = results[int(selected_option_for_gipedo)][0]
-    selected_gipedo_name = results[int(selected_option_for_gipedo)][1]
-
-    return (input_date,input_time,input_diarkeia,kostos,selected_option_for_gipedo,selected_gipedo_id,selected_gipedo_name)
+    input_time = input("Τι ώρα θέλετε; ")# Θα αλλάξει για να γίνεται έλεγχος εγκυρότητας 
+    input_diarkeia = input("Πόσες ώρες; ")#  Θέλει συζήτηση αυτό
+    return(input_date,input_time,input_diarkeia)
 
 
-def kratisi_confirm(input_date,input_time,input_diarkeia,kostos,selected_option_for_gipedo,selected_gipedo_id,selected_gipedo_name,onoma,eponymo,final_datetime):
+
+
+
+def kratisi_confirm(input_date,input_time,input_diarkeia,kostos,selected_gipedo_id,selected_gipedo_name,onoma,eponymo,final_datetime):
     print("Η κράτηση θα γίνει για:")
     print("Ονομα",onoma)
     print("Επώνυμο",eponymo)
@@ -443,17 +471,32 @@ def kratisi_confirm(input_date,input_time,input_diarkeia,kostos,selected_option_
 
 
     
+def gipedo_selection():
+    global curs,con
+    print("Αυτά είναι όλα τα διαθέσιμα γήπεδα μας")
+    curs.execute("SELECT * FROM `gipedo` WHERE Texn_Diathesimotita = '1'") 
+    results=curs.fetchall()
+    counter = 0
+    for result in results:
+        print("Enter ",counter,"for :",result[1], "Type of :",result[2])
+        counter = counter + 1    
+    selected_option_for_gipedo = input("Για ποιο γήπεδο θέλετε;")
+    selected_gipedo_id = results[int(selected_option_for_gipedo)][0]
+    selected_gipedo_name = results[int(selected_option_for_gipedo)][1]
+    return(str(selected_gipedo_id),str(selected_gipedo_name))
+    
+    
 
 
 
-
-def kratisi_overlap(date,time,dur,idn):
+def kratisi_overlap(date_in,time,dur,idn):
     #dur is in hours
     global curs,con
-    start = time
-    end = str(int(time) + int(dur))
+    start = time[:-3]
+    end = str(int(time[:-3]) + int(dur))
+    date = date_in+" 00:00:00"
     
-    select = "SELECT * FROM `kratisi` K WHERE K.Id_Gipedou='"+idn+"' and K.Imerominia >= DATE_ADD('"+date+"', INTERVAL '"+start+"' hour) and K.Imerominia < DATE_ADD('"+date+"', INTERVAL '"+end+"' hour)"
+    select = "SELECT * FROM `kratisi` K WHERE K.Id_Gipedou='"+idn+"' and (K.Imerominia >= DATE_ADD('"+date+"', INTERVAL "+start+" hour) and K.Imerominia < DATE_ADD('"+date+"', INTERVAL "+end+" hour));"
     curs.execute(select)    
     result=curs.fetchall()
     if(len(result)!=0):
@@ -593,13 +636,13 @@ def programma_on_date(): #εμφανίζει κρατήσεις για συγκ�
     global curs,con
     date=valid_date_loop("Να εισηχθεί η επιθημητή ημερομηνία:\n")
     print("Οι κρατήσεις για την ημερομηνία "+date+" είναι:")
-    result=prog_query_return(1,0,date)
+    result=prog_query_return(1,0,date,"")
     
     if(len(result)==0):
         print("Δέν υπάρχουν κρατήσεις για αυτήν την ημερομηνία.")
     else:
         for i in result:
-            print(i)
+            display_kratisi(i)
     while(True):
         if(input("Πατήστε κενό και ENTER για επιστροφή.\n")):
             return
@@ -611,13 +654,13 @@ def programma_for_gipedo(): #εμφανίζει τις κρατήσεις για
     view_gipedo(2)
     idn = valid_gipedo_loop("Εισάγετε τον αριθμό του ID του γηπέδου για το οποίο θέλετε να δείτε όλες τις κρατήσεις.\n")
     print("Οι συνολικές κρατήσεις για το γήπεδο αυτό είναι:")   
-    result=prog_query_return(2,idn,"")
+    result=prog_query_return(2,idn,"","")
     
     if(len(result)==0):
         print("Δέν υπάρχουν κρατήσεις για αυτο το γήπεδο")
     else:
         for i in result:
-            print(i)
+            display_kratisi(i)
     while(True):
         if(input("Πατήστε κενό και ENTER για επιστροφή.\n")):
             return
@@ -630,19 +673,19 @@ def programma_for_gipedo_on_date(): #εμφανίζει το πρόγραμμα 
     date=valid_date_loop("Να εισηχθεί η επιθημητή ημερομηνία:\n")
     
     print("Οι συνολικές κρατήσεις για το γήπεδο αυτό για την ημερομηνία "+date+" είναι:")
-    result=prog_query_return(3,idn,date)
+    result=prog_query_return(3,idn,date,"")
     
     if(len(result)==0):
         print("Δέν υπάρχουν κρατήσεις για αυτον τον συνδιασμό")
     else:
         for i in result:
-            print(i)
+            display_kratisi(i)
     while(True):
         if(input("Πατήστε κενό και ENTER για επιστροφή.\n")):
             return
     
 
-def prog_query_return(mode,idn,date): #επιστρέφει τα αποτελέσματα για τα αντίστοιχα query. για χρήση στις απο πάνω συναρτήσεις αλλα και σε άλλα κομμάτια του προγράμματος
+def prog_query_return(mode,idn,date,hour): #επιστρέφει τα αποτελέσματα για τα αντίστοιχα query. για χρήση στις απο πάνω συναρτήσεις αλλα και σε άλλα κομμάτια του προγράμματος
     global curs,con
 
     if(mode==1):
@@ -651,10 +694,12 @@ def prog_query_return(mode,idn,date): #επιστρέφει τα αποτελέ�
         select = "SELECT * FROM `kratisi` K WHERE  K.Id_Gipedou ='"+idn+"'"
     if(mode==3):
         select = "SELECT * FROM `kratisi` K WHERE  K.Id_Gipedou ='"+idn+"' AND K.Imerominia >= '"+date+"' and K.Imerominia < DATE_ADD('"+date+"', INTERVAL 24 hour)"
-    
+    if(mode==4):
+        select = "SELECT * FROM `kratisi` K WHERE AND K.Imerominia = '"+date+" '"+hour+"'"    
     curs.execute(select)    
     result=curs.fetchall()
     return result
+
 
 
         
