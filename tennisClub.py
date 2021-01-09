@@ -709,6 +709,26 @@ def epipleon_menu(): #Ενα μενού για τις μη συχνές λειτ
         if ans==' ':
             return
 
+def tournoua_menu(): #Μενού για τα τουρνουά
+    while True:
+        print('Για να δείτε όλα τα τουρνουά πατήστε το 0')
+        print('Για να προσθέσετε παίκτες σε τουρνουά πατήστε το 1')
+        print('Για αλλαγή στοιχείων τουρνουά ατόμου πατήστε το 2')
+        print('Για δημιουργία τουρνουά πατήστε το 3')
+        print('Για να προσθέσετε τα αποτελέσματα αγώνων πατήστε το 4')
+        ans =input()
+        if ans=='0':
+            show_tournament()    
+        if ans=='1':
+            add_team_in_tournament()
+        if ans=='2':
+            alter_tournament()
+        if ans=='3':
+            create_tournament()
+        if ans=='4':
+            insert_scores_in_tournament()
+        if ans==' ':
+            return
 
 
 
