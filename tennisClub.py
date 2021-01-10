@@ -6,6 +6,8 @@ from os.path import join, dirname
 from dotenv import load_dotenv #Το dotenv χρειάζεται για να μπορούμε να τραβάμε τα στοιχεία για τη βάση και να μην φαίνονται στο git
 import datetime
 from datetime import date
+import math
+import random
 today = date.today()
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
@@ -395,7 +397,7 @@ def display_kratisi(res):
         hour="0"+hour
     if(len(minute)==1):
         minute="0"+minute
-    print("Γήπεδο ID: "+str(res[3])+" Ημερομηνία: " +str(res[1].year)+"-"+str(res[1].month)+"-"+str(res[1].day)+" Ώρα: "+hour+":"+minute+"  διάρκεια: "+str(res[2])+" ώρες")
+    print("ID Κράτησης: "+str(res[0])+" Γήπεδο ID: "+str(res[3])+" Ημερομηνία: " +str(res[1].year)+"-"+str(res[1].month)+"-"+str(res[1].day)+" Ώρα: "+hour+":"+minute+"  διάρκεια: "+str(res[2])+" ώρες")
 
     
     
@@ -979,6 +981,140 @@ def add_player_in_omada():
                     amka = results[int(selection)][0]
                     return amka
         exit
+def change_kratisi():
+     alter_kratisi(1)
+
+
+
+ def alter_kratisi(mode):
+     #mode==1 κράτηση ατόμου mode==2 κράτηση γκρουπ mode==3 κράτηση αγώνα
+     if(mode==1):
+         amka=select_apo_stoixeia()
+         to_be_altered = find_kratisi_by_atomo(amka)       
+     kratisi_update(to_be_altered)
+
+
+
+ ##def find_kratisi_by_tournament():
+ ##    print("Αυτά είναι τα Τουρνουά μας:")
+ ##    show_tournament()
+ ##    idn = input("Διαλέξτε το Id του γηπέδου που θέλετε να αλλάξουμε: ")
+ ##    
+ ##    curs.execute("SELECT * FROM `agonas` WHERE Id_Tournoua='"+idn+"';")
+ ##    results=curs.fetchall()
+ ##    
+ ##    t = PrettyTable(['Id','Score','Id Ομάδας 1','Id Ομάδας 2','Id Τουρνουά']) 
+ ##    for result in results:
+ ##        t.add_row([result[0],result[1],result[2],result[3],result[4]])
+ ##    print(t)
+ ##    
+ ##    ida = input("Για ποιόν αγώνα θέλετε να αλλάξετε κράτηση; Εισάγετε το Id του: ")
+ ##    print("Αυτός ο αγώνας έχει τις εξής κρατήσεις:")
+ ##    curs.execute("SELECT * FROM `kratisi` WHERE Id_Agona='"+ida+"';")
+ ##    res2=curs.fetchall()
+ ## 
+ ##    for i in res2:
+ ##        display_kratisi(i)
+ ##    print(t)
+ ##
+ ##    idk = input("Εισάγετε το Id της κράτησης που θέλετε να αλλάξει: ")
+ ##    return idk
+
+
+
+ def find_kratisi_by_atomo(amka):
+     print("Αυτό το άτομο έχει κάνει τις εξής κρατήσεις: ")
+
+     curs.execute("SELECT * FROM `kratisi` WHERE Id_Paikti='"+str(amka)+"';")
+     res2=curs.fetchall()
+
+     for i in res2:
+         display_kratisi(i)
+
+     idk = input("Εισάγετε το Id της κράτησης που θέλετε να αλλάξει: ")
+     return idk
+
+
+ def kratisi_update(idk):
+
+     while True:
+         global curs,con
+         ans = input("Πατήστε 1 για να διαγραφεί η κράτηση, 2 για να γίνει αλλαγή στοιχείων: ")
+         if ans=='1':
+             curs.execute("DELETE FROM `kratisi` WHERE Id='"+idk+"';")
+             con.commit()
+             print("Έγινε η διαγραφή. ")
+         else:        
+             table_for_kratisi(idk)
+             ans = input("Ποιό απο τα στοιχεία θέλετε να αλλάξουν;\n")
+             table_for_kratisi(idk)
+
+             if(ans=='2'):
+                 (input_date,input_time,input_diarkeia,kostos,gipedo_id,selected_gipedo_name)=update_datetime_loop(1,idk)
+                 curs.execute("UPDATE `kratisi` SET Diarkeia='"+input_diarkeia+"' WHERE Id='"+idk+"'")
+                 final_datetime = str(input_date)+" "+str(input_time)
+                 curs.execute("UPDATE `kratisi` SET Imerominia='"+final_datetime+"' WHERE Id='"+idk+"'")
+             if(ans=='1'):
+                 (input_date,input_time,input_diarkeia,kostos,gipedo_id,selected_gipedo_name)=update_datetime_loop(2,idk)
+                 curs.execute("UPDATE `kratisi` SET Id_Gipedou='"+gipedo_id+"' WHERE Id='"+idk+"'")
+             con.commit()
+             print("Έγινε η αλλαγή. ")
+         ans=input("Πατήστε Ν για να εισάγετε κι αλλη κράτηση, άλλο κουμπί για επιστροφή στο αρχικό μενού: ")
+         if(ans!="Ν" or ans!="N" or ans!="n" or ans!="ν"):
+             return
+
+
+
+
+
+
+
+ def update_datetime_loop(mode,idk):
+
+     (dt,dur,cost,gipedo_id) = extract_kratisi_values(idk)
+
+     input_date,input_time=dt.strftime("%Y-%m-%d %H:%m").split()
+     input_diarkeia=dur
+
+     if(mode==1):
+         (input_date,input_time,input_diarkeia) = input_time_for_kratisi()
+     if(mode==2):
+         (gipedo_id,selected_gipedo_name) = gipedo_selection()
+
+
+     (check,res)=kratisi_overlap(input_date,input_time,input_diarkeia,gipedo_id)
+     while check==True:
+         print("Δεν μπορεί να γίνει η κράτηση για αυτο ο γήπεδο για αυτήν την ώρα, υπάρχει σύγκρουση με τις εξής κρατήσεις:")
+         for i in res:
+             display_kratisi(i)
+
+         if(mode==1):           
+            print("Επιλέξτε άλλη ώρα/ημερομηνία:")
+            (input_date,input_time,input_diarkeia) = input_time_for_kratisi()
+            cost=str(20*int(dur))
+         if(mode==2):           
+            print("Επιλέξτε άλλο Id γήπεδο")
+            (gipedo_id,selected_gipedo_name) = gipedo_selection()
+
+         (check,res)=kratisi_overlap(input_date,input_time,input_diarkeia,gipedo_id)
+
+     return (input_date,input_time,input_diarkeia,cost,gipedo_id,"")
+
+
+ def extract_kratisi_values(idk):   
+     curs.execute("SELECT * FROM `kratisi` WHERE Id='"+idk+"';")
+     res=curs.fetchall()
+     vals=res[0]
+     #datetime,dur,cost,gipedo_id
+     return (vals[1],str(vals[2]),str(vals[3]),str(vals[4]))
+
+
+ def table_for_kratisi(idk):
+     (dt,dur,cost,gipedo_id) = extract_kratisi_values(idk)
+     t = PrettyTable(['Επιλογή','Περιγραφή','Τιμή']) 
+     t.add_row([1,"Γήπεδο","id γηπέδου "+str(gipedo_id)])
+     t.add_row([2,"Ημερομηνία/ώρα/διάρκεια",dt.strftime("%Y-%m-%d %H:%m")+" "+str(dur)])
+     print(t)
 
 
 
@@ -1187,10 +1323,167 @@ def show_the_person_with(amka):
     return 
 
 def draw_tournament():
-    print("Try")
-    #
+    global curs,con
+    print ("Για ποιο τουρνουά θέλετε να κάνετε κλήρωση;")
+    t = PrettyTable(['ID','Όνομα','Είδος','Έναρξη','Λήξη','Όριο ομάδων','Έχουν γραφτεί']) 
+    query = " SELECT tournoua.Id, Onoma, Hm_Enarxis, Hm_Lixis, Orio_Omadon, Paiktes_se_omada, count(omada.Id) as Grammenes FROM `tournoua` INNER JOIN omada ON omada.Id_tournoua = tournoua.Id WHERE tournoua.Id NOT IN (SELECT Id_Tournoua FROM agonas) GROUP BY omada.Id_tournoua ;"
+    eidos = ''
+    curs.execute(query)
+    results=curs.fetchall()
+    for result in results:
+        if (result[5] == 1):
+            eidos = "Ατομικό"
+        elif (result[5] == 2):
+            eidos = "Ομαδικό"
+        t.add_row([result[0],result[1],eidos,result[2],result[3],result[4],result[6]])
+    print(t)
+    id_tournoua = input("Εισάγετε το Id του τουρνουά: ")
+    query = " SELECT tournoua.Id, Onoma, Hm_Enarxis, Hm_Lixis, Orio_Omadon, Paiktes_se_omada, count(omada.Id) as Grammenes FROM `tournoua` INNER JOIN omada ON omada.Id_tournoua = tournoua.Id WHERE tournoua.Id = '"+str(id_tournoua)+"' GROUP BY omada.Id_tournoua ;"
+    curs.execute(query)
+    results=curs.fetchall()
+    if (results[0][5] == 1):
+        eidos = "Ατομικό"
+    elif (results[0][5] == 2):
+        eidos = "Ομαδικό"
+    t = PrettyTable(['ID','Όνομα','Είδος','Έναρξη','Λήξη','Όριο ομάδων','Έχουν γραφτεί']) 
+    t.add_row([str(results[0][0]),str(results[0][1]),eidos,str(results[0][2]),str(results[0][3]),str(results[0][4]),str(results[0][6])])
+    print(t)
+    print("Σε αυτό θέλετε να κάνετε την κλήρωση;")
+    inp = input("Σωστό; Ν(αι) ή Ο(χι): ")
+    orio = str(results[0][4])
+    grammenoi = str(results[0][6])
+    rounds=0
+    sum = 0
+    i = 2
+    if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or engilsh
+        #Αρχικά πρέπει να βρω σε ποια δύναμη του 2 θα αντιστοιχίσω το τουρνουά
+        print("Αυτό το τουρνουά είχε σχεδιαστεί για ",orio," συμμετοχές")
+        print("Τελικά είχαμε ",grammenoi)
+
+        if(int(grammenoi)<=int(orio)):
+            print("Είχαμε σχεδιάσει ότι θα είναι ",str(math.log(int(orio),2))," γύροι")
+            for x in range(1, 6):
+                if (int(grammenoi)<=pow(2,x)):
+                    print("Τελικά θα είναι ", x, "γύροι")
+                    rounds = x 
+                    break
+            #Tώρα πρέπει να βρούμε πόσοι αγώνες θα γίνουν και πόσοι θα περάσουν έτσι
+            orio = pow(2,rounds)
+            apefthias = orio - int(grammenoi)
+            arithmos_ag = (orio/2) - apefthias
+            print("Απευθείας στην επόμενη φάση λόγω μη πλήρωσης θα περάσουν ",apefthias," συμμετοχές")
+            print("Στον πρώτο γύρο θα γίνουν ",arithmos_ag," αγώνες")
+            klirwsi_1st(id_tournoua,arithmos_ag,apefthias,rounds)
+            left_teams = orio/2
+            sum = arithmos_ag
+            while(i<=rounds):
+                arithmos_ag = left_teams/2
+                print("Στον  γύρο",i," θα γίνουν",arithmos_ag)
+                sum = sum + arithmos_ag
+                i = i+1
+                left_teams = left_teams/2
+            print("Σύνολο αγώνων", sum)
+ 
+
+
+    else:#Σε περίπτωση που δεν πατήσει ΝΑΙ
+        return
+
+def klirwsi_1st(id_tournoua,arithmos_ag,apefthias,rounds):
+    global curs,con
+    omades = []
+    query = "SELECT id FROM omada WHERE Id_tournoua='"+id_tournoua+"';"
+    curs.execute(query)
+    results=curs.fetchall()
+    for result in results:
+        omades.append(result[0])
+    print("Κλήρωση πρώτου γύρου")
+    apefthias_pinakas = []
+    next_round_with_match = []
+    agones_to_create = []
+    for counter in range(int(apefthias)):
+        omada_apefthias = random.choice(omades)
+        apefthias_pinakas.append(omada_apefthias)
+        omades.remove(omada_apefthias)
+    while(len(omades) > 0):
+        id_omadas1 = random.choice(omades)
+        omades.remove(id_omadas1)
+        id_omadas2 = random.choice(omades)
+        omades.remove(id_omadas2)
+        query = "INSERT INTO `agonas` (`Id`, `Score`, `Id_Omadas_1`, `Id_Omadas_2`, `Id_Tournoua`) VALUES (NULL, '0-0', '"+str(id_omadas1)+"', '"+str(id_omadas2)+"', '"+str(id_tournoua)+"') ;"
+        curs.execute(query)
+        con.commit()
+        agones_to_create.append((id_omadas1,id_omadas2))
+        next_round_with_match.append("Winnerof"+str(id_omadas1)+"-"+str(id_omadas2))
+    round_to_be_drawn = 1 #Αν κάνω κλήρωση και για άλλους να το κάνω δυναμικό
+    kratisi_agonwn_tournoua(agones_to_create,id_tournoua,rounds,round_to_be_drawn)
+    
+    next = apefthias_pinakas + next_round_with_match
+    print("Απευθείας περνάνε οι ομάδες με id:",apefthias_pinakas)
+    print("Αρα στον επόμενο γύρο θα βρεθούν οι",next)
+
+
+def diagrafi_agwnwn_tournoua(id_tournoua):
+    global curs,con
+    query = "DELETE FROM `agonas` WHERE `agonas`.`Id_Tournoua` = '"+id_tournoua+"' ;"
+    curs.execute(query)
+    con.commit()
 
     
+
+def kratisi_agonwn_tournoua(agones_to_create,id_tournoua,rounds,round_to_be_drawn):
+    global curs,con
+    query = "SELECT * FROM tournoua WHERE Id ='"+str(id_tournoua)+"' ;"
+    curs.execute(query)
+    results=curs.fetchall()
+    im_enarxis = results[0][2]
+    im_lixis = results[0][3]
+    duration_of_tournament = im_lixis-im_enarxis
+    duration_of_each_round = duration_of_tournament/rounds
+    im_enarxis_round = im_enarxis
+    im_lixis_round = im_enarxis + datetime.timedelta(days=duration_of_each_round.days)
+    print("Το τουρνουά θα γίνει από ",str(im_enarxis),"μέχρι ",str(im_lixis))
+    print("Με συνολική διάρκεια ",duration_of_tournament)
+    print("Η διάρκεια κάθε γύρου θα είναι ",duration_of_each_round.days,"μέρες")
+    print("Ο πρώτος γύρος θα γίνει από ",im_enarxis_round,"μέχρι ",im_lixis_round)
+    #Εδώ ξεκινάει η δυσκολία. Εχει να κάνει με την κράτηση. Αρχικά δεν θα πειράζω τη βάση
+
+    
+def diagrafi_klirwsis():
+    global curs,con
+    print ("Για ποιο τουρνουά θέλετε να ακυρώσετε την κλήρωση;")
+    t = PrettyTable(['ID','Όνομα','Είδος','Έναρξη','Λήξη','Όριο ομάδων','Έχουν γραφτεί']) 
+    query = " SELECT tournoua.Id, Onoma, Hm_Enarxis, Hm_Lixis, Orio_Omadon, Paiktes_se_omada, count(omada.Id) as Grammenes FROM `tournoua` INNER JOIN omada ON omada.Id_tournoua = tournoua.Id WHERE tournoua.Id IN (SELECT Id_Tournoua FROM agonas) GROUP BY omada.Id_tournoua ;"
+    eidos = ''
+    curs.execute(query)
+    results=curs.fetchall()
+    for result in results:
+        if (result[5] == 1):
+            eidos = "Ατομικό"
+        elif (result[5] == 2):
+            eidos = "Ομαδικό"
+        t.add_row([result[0],result[1],eidos,result[2],result[3],result[4],result[6]])
+    print(t)
+    id_tournoua = input("Εισάγετε το Id του τουρνουά: ")
+    query = " SELECT tournoua.Id, Onoma, Hm_Enarxis, Hm_Lixis, Orio_Omadon, Paiktes_se_omada, count(omada.Id) as Grammenes FROM `tournoua` INNER JOIN omada ON omada.Id_tournoua = tournoua.Id WHERE tournoua.Id = '"+str(id_tournoua)+"' GROUP BY omada.Id_tournoua ;"
+    curs.execute(query)
+    results=curs.fetchall()
+    if (results[0][5] == 1):
+        eidos = "Ατομικό"
+    elif (results[0][5] == 2):
+        eidos = "Ομαδικό"
+    t = PrettyTable(['ID','Όνομα','Είδος','Έναρξη','Λήξη','Όριο ομάδων','Έχουν γραφτεί']) 
+    t.add_row([str(results[0][0]),str(results[0][1]),eidos,str(results[0][2]),str(results[0][3]),str(results[0][4]),str(results[0][6])])
+    print(t)
+    print("Σε αυτό θέλετε να ακυρώσετε την κλήρωση;")
+    inp = input("Σωστό; Ν(αι) ή Ο(χι): ")
+    if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or engilsh
+        diagrafi_agwnwn_tournoua(id_tournoua)
+        print("Έγινε η διαγραφή της κλήρωσης ")
+        return
+    else:
+        print("Δεν έγινε η διαγραφή")
+        return
 
 
 def tournoua_menu(): #Μενού για τα τουρνουά
@@ -1203,6 +1496,7 @@ def tournoua_menu(): #Μενού για τα τουρνουά
         t.add_row([3,"Δημιουργήστε καινούργιο τουρνουά"])
         t.add_row([4,"Καταχώρυση αποτελέσματος αγώνα τουρνουά"])
         t.add_row([5,"Κάντε την κλήρωση τουρνουά"])
+        t.add_row([6,"Διαγράψτε την κλήρωση κάποιου τουρνουά"])
         t.add_row(["Κενό","Έξοδος"])
         print(t)
         print("Ανάλογα με το ποια λειτουργία θέλετε επιλέξτε το αντίστοιχο νούμερο")
@@ -1220,6 +1514,8 @@ def tournoua_menu(): #Μενού για τα τουρνουά
             insert_scores_in_tournament()
         if ans=='5':
             draw_tournament()
+        if ans == '6':
+            diagrafi_klirwsis()
 
         if ans==' ':
             return
@@ -1263,6 +1559,7 @@ def menu(): #Σε αυτό το μενού πρέπει να σχεδιάσου�
 
 def main():#Εδώ μέσα βάζεις όποια συνάρτηση θέλεις να γίνει.
     connect_to_db()
+    #draw_tournament()
     menu()
     con.close()
 
