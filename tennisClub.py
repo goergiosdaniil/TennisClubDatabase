@@ -815,19 +815,6 @@ def group_menu(): #Ένα γενικό μενου για τις διάφορες
             return
 
 
-def epipleon_menu(): #Ενα μενού για τις μη συχνές λειτουργίες της εφαρμογής μας
-    
-    while True:
-        print('Για αλλαγή πληροφορίας γηπέδου πατήστε το 1')
-        print('Για αλλαγή πληροφορίας ατόμου πατήστε το 2')
-        ans =input()
-                   
-        if ans=='1':
-            alter_gipedo()
-        if ans=='2':
-            alter_atomo()
-        if ans==' ':
-            return
 
 def number_check(mode):#Ελέγχω αν επιλέγει μία από τις επιλογές που του δίνω
 
@@ -1565,50 +1552,37 @@ def tournoua_menu(): #Μενού για τα τουρνουά
     while True:
         print("Τουρνουά")
         t = PrettyTable(['Επιλογή','Περιγραφή',]) 
-        t.add_row([0,"Δείτε όλα τα τουρνουά"])
-        t.add_row([1,"Προσθέστε παίκες σε σε τουρνουά"])
-        t.add_row([2,"Αλλαγή στοιχείων τουρνουά"])
+        t.add_row([1,"Δείτε όλα τα τουρνουά"])
+        t.add_row([2,"Προσθέστε παίκες σε σε τουρνουά"])
         t.add_row([3,"Δημιουργήστε καινούργιο τουρνουά"])
-        t.add_row([4,"Καταχώρυση αποτελέσματος αγώνα τουρνουά"])
-        t.add_row([5,"Κάντε την κλήρωση τουρνουά"])
-        t.add_row([6,"Διαγράψτε την κλήρωση κάποιου τουρνουά"])
+        t.add_row([4,"Κάντε την κλήρωση τουρνουά"])
+        t.add_row([5,"Διαγράψτε την κλήρωση κάποιου τουρνουά"])
         t.add_row(["Κενό","Έξοδος"])
         print(t)
         print("Ανάλογα με το ποια λειτουργία θέλετε επιλέξτε το αντίστοιχο νούμερο")
         print("Αν θέλετε να κλείσετε την εφαρμογή πατήστε το κενό και μετά το enter")
         ans =input("Επιλογή: ")
-        if ans=='0':
-            show_tournament()    
         if ans=='1':
-            add_team_in_tournament()
+            show_tournament()    
         if ans=='2':
-            alter_tournament()
+            add_team_in_tournament()
         if ans=='3':
             create_tournament()
         if ans=='4':
-            insert_scores_in_tournament()
-        if ans=='5':
             draw_tournament()
-        if ans == '6':
+        if ans == '5':
             diagrafi_klirwsis()
 
         if ans==' ':
             return
 
 
-
-def menu(): #Σε αυτό το μενού πρέπει να σχεδιάσουμε τις επιλογές
-    print('Καλησπέρα!\n')
+def kratisi_menu(): #Σε αυτό το μενού πρέπει να σχεδιάσουμε τις επιλογές
     while True:
-        print("Κεντρικό Μενού")
+        print("Κρατήσεις")
         t = PrettyTable(['Επιλογή','Περιγραφή',]) 
-        t.add_row([1,"Νέα κράτηση"])
-        t.add_row([2,"Αλλαγή σε κράτηση"])
-        t.add_row([3,"Καινούργιο παίκτη"])
-        t.add_row([4,"Τουρνουά"])
-        t.add_row([5,"Πρόγραμμα"])
-        t.add_row([6,"Γκρουπ Εκμάθησης"])
-        t.add_row([7,"Περισσότερα"])
+        t.add_row([1,"Νέα Κράτηση"])
+        t.add_row([2,"Αλλαγή σε Κράτηση"])
         t.add_row(["Κενό","Έξοδος"])
         print(t)
         print("Ανάλογα με το ποια λειτουργία θέλετε επιλέξτε το αντίστοιχο νούμερο")
@@ -1619,16 +1593,58 @@ def menu(): #Σε αυτό το μενού πρέπει να σχεδιάσου�
             kratisi()
         if ans=='2':
             change_kratisi()
-        if ans=='3':
+        if ans==' ':
+            return
+
+def atomo_menu(): #Σε αυτό το μενού πρέπει να σχεδιάσουμε τις επιλογές
+    while True:
+        print("Άτομα")
+        t = PrettyTable(['Επιλογή','Περιγραφή',]) 
+        t.add_row([1,"Νέα Εγγραφή"])
+        t.add_row([2,"Αλλαγή σε κάποιο άτομο"])
+        t.add_row(["Κενό","Έξοδος"])
+        print(t)
+        print("Ανάλογα με το ποια λειτουργία θέλετε επιλέξτε το αντίστοιχο νούμερο")
+        print("Αν θέλετε να κλείσετε την εφαρμογή πατήστε το κενό και μετά το enter")
+        ans =input("Επιλογή: ")
+                   
+        if ans=='1':
             insert_atomo("","","",0,"")
-        if ans=='4':
+        if ans=='2':
+            alter_atomo()
+        if ans==' ':
+            return
+
+
+def menu(): #Σε αυτό το μενού πρέπει να σχεδιάσουμε τις επιλογές
+    print('Καλησπέρα!\n')
+    while True:
+        print("Κεντρικό Μενού")
+        t = PrettyTable(['Επιλογή','Περιγραφή',]) 
+        t.add_row([1,"Κρατήσεις"])
+        t.add_row([2,"Άτομα"])
+        t.add_row([3,"Τουρνουά"])
+        t.add_row([4,"Γκρουπ Εκμάθησης"])
+        t.add_row([5,"Πρόγραμμα"])
+        t.add_row([6,"Γήπεδα"])
+        t.add_row(["Κενό","Έξοδος"])
+        print(t)
+        print("Ανάλογα με το ποια λειτουργία θέλετε επιλέξτε το αντίστοιχο νούμερο")
+        print("Αν θέλετε να κλείσετε την εφαρμογή πατήστε το κενό και μετά το enter")
+        ans =input("Επιλογή: ")
+                   
+        if ans=='1':
+            kratisi_menu()
+        if ans=='2':
+            atomo_menu()
+        if ans=='3':
             tournoua_menu()
+        if ans=='4':
+            group_menu()
         if ans=='5':
             programma()
         if ans=='6':
-            group_menu()
-        if ans=='7':
-            epipleon_menu()
+            gipedo_menu()
         if ans==' ':
             return
 
