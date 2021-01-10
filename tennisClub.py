@@ -982,139 +982,139 @@ def add_player_in_omada():
                     return amka
         exit
 def change_kratisi():
-     alter_kratisi(1)
+    alter_kratisi(1)
 
 
 
- def alter_kratisi(mode):
-     #mode==1 κράτηση ατόμου mode==2 κράτηση γκρουπ mode==3 κράτηση αγώνα
-     if(mode==1):
-         amka=select_apo_stoixeia()
-         to_be_altered = find_kratisi_by_atomo(amka)       
-     kratisi_update(to_be_altered)
+def alter_kratisi(mode):
+    #mode==1 κράτηση ατόμου mode==2 κράτηση γκρουπ mode==3 κράτηση αγώνα
+    if(mode==1):
+        amka=select_apo_stoixeia()
+        to_be_altered = find_kratisi_by_atomo(amka)       
+    kratisi_update(to_be_altered)
+    
 
+    
+##def find_kratisi_by_tournament():
+##    print("Αυτά είναι τα Τουρνουά μας:")
+##    show_tournament()
+##    idn = input("Διαλέξτε το Id του γηπέδου που θέλετε να αλλάξουμε: ")
+##    
+##    curs.execute("SELECT * FROM `agonas` WHERE Id_Tournoua='"+idn+"';")
+##    results=curs.fetchall()
+##    
+##    t = PrettyTable(['Id','Score','Id Ομάδας 1','Id Ομάδας 2','Id Τουρνουά']) 
+##    for result in results:
+##        t.add_row([result[0],result[1],result[2],result[3],result[4]])
+##    print(t)
+##    
+##    ida = input("Για ποιόν αγώνα θέλετε να αλλάξετε κράτηση; Εισάγετε το Id του: ")
+##    print("Αυτός ο αγώνας έχει τις εξής κρατήσεις:")
+##    curs.execute("SELECT * FROM `kratisi` WHERE Id_Agona='"+ida+"';")
+##    res2=curs.fetchall()
+## 
+##    for i in res2:
+##        display_kratisi(i)
+##    print(t)
+##
+##    idk = input("Εισάγετε το Id της κράτησης που θέλετε να αλλάξει: ")
+##    return idk
+    
+    
+    
+def find_kratisi_by_atomo(amka):
+    print("Αυτό το άτομο έχει κάνει τις εξής κρατήσεις: ")
 
+    curs.execute("SELECT * FROM `kratisi` WHERE Id_Paikti='"+str(amka)+"';")
+    res2=curs.fetchall()
+ 
+    for i in res2:
+        display_kratisi(i)
 
- ##def find_kratisi_by_tournament():
- ##    print("Αυτά είναι τα Τουρνουά μας:")
- ##    show_tournament()
- ##    idn = input("Διαλέξτε το Id του γηπέδου που θέλετε να αλλάξουμε: ")
- ##    
- ##    curs.execute("SELECT * FROM `agonas` WHERE Id_Tournoua='"+idn+"';")
- ##    results=curs.fetchall()
- ##    
- ##    t = PrettyTable(['Id','Score','Id Ομάδας 1','Id Ομάδας 2','Id Τουρνουά']) 
- ##    for result in results:
- ##        t.add_row([result[0],result[1],result[2],result[3],result[4]])
- ##    print(t)
- ##    
- ##    ida = input("Για ποιόν αγώνα θέλετε να αλλάξετε κράτηση; Εισάγετε το Id του: ")
- ##    print("Αυτός ο αγώνας έχει τις εξής κρατήσεις:")
- ##    curs.execute("SELECT * FROM `kratisi` WHERE Id_Agona='"+ida+"';")
- ##    res2=curs.fetchall()
- ## 
- ##    for i in res2:
- ##        display_kratisi(i)
- ##    print(t)
- ##
- ##    idk = input("Εισάγετε το Id της κράτησης που θέλετε να αλλάξει: ")
- ##    return idk
+    idk = input("Εισάγετε το Id της κράτησης που θέλετε να αλλάξει: ")
+    return idk
+    
 
+def kratisi_update(idk):
 
+    while True:
+        global curs,con
+        ans = input("Πατήστε 1 για να διαγραφεί η κράτηση, 2 για να γίνει αλλαγή στοιχείων: ")
+        if ans=='1':
+            curs.execute("DELETE FROM `kratisi` WHERE Id='"+idk+"';")
+            con.commit()
+            print("Έγινε η διαγραφή. ")
+        else:        
+            table_for_kratisi(idk)
+            ans = input("Ποιό απο τα στοιχεία θέλετε να αλλάξουν;\n")
+            table_for_kratisi(idk)
+            
+            if(ans=='2'):
+                (input_date,input_time,input_diarkeia,kostos,gipedo_id,selected_gipedo_name)=update_datetime_loop(1,idk)
+                curs.execute("UPDATE `kratisi` SET Diarkeia='"+input_diarkeia+"' WHERE Id='"+idk+"'")
+                final_datetime = str(input_date)+" "+str(input_time)
+                curs.execute("UPDATE `kratisi` SET Imerominia='"+final_datetime+"' WHERE Id='"+idk+"'")
+            if(ans=='1'):
+                (input_date,input_time,input_diarkeia,kostos,gipedo_id,selected_gipedo_name)=update_datetime_loop(2,idk)
+                curs.execute("UPDATE `kratisi` SET Id_Gipedou='"+gipedo_id+"' WHERE Id='"+idk+"'")
+            con.commit()
+            print("Έγινε η αλλαγή. ")
+        ans=input("Πατήστε Ν για να εισάγετε κι αλλη κράτηση, άλλο κουμπί για επιστροφή στο αρχικό μενού: ")
+        if(ans!="Ν" or ans!="N" or ans!="n" or ans!="ν"):
+            return
+        
+    
+        
+        
+    
+    
+        
+def update_datetime_loop(mode,idk):
+    
+    (dt,dur,cost,gipedo_id) = extract_kratisi_values(idk)
+    
+    input_date,input_time=dt.strftime("%Y-%m-%d %H:%m").split()
+    input_diarkeia=dur
 
- def find_kratisi_by_atomo(amka):
-     print("Αυτό το άτομο έχει κάνει τις εξής κρατήσεις: ")
+    if(mode==1):
+        (input_date,input_time,input_diarkeia) = input_time_for_kratisi()
+    if(mode==2):
+        (gipedo_id,selected_gipedo_name) = gipedo_selection()
 
-     curs.execute("SELECT * FROM `kratisi` WHERE Id_Paikti='"+str(amka)+"';")
-     res2=curs.fetchall()
+    
+    (check,res)=kratisi_overlap(input_date,input_time,input_diarkeia,gipedo_id)
+    while check==True:
+        print("Δεν μπορεί να γίνει η κράτηση για αυτο ο γήπεδο για αυτήν την ώρα, υπάρχει σύγκρουση με τις εξής κρατήσεις:")
+        for i in res:
+            display_kratisi(i)
+            
+        if(mode==1):           
+           print("Επιλέξτε άλλη ώρα/ημερομηνία:")
+           (input_date,input_time,input_diarkeia) = input_time_for_kratisi()
+           cost=str(20*int(dur))
+        if(mode==2):           
+           print("Επιλέξτε άλλο Id γήπεδο")
+           (gipedo_id,selected_gipedo_name) = gipedo_selection()
+           
+        (check,res)=kratisi_overlap(input_date,input_time,input_diarkeia,gipedo_id)
+        
+    return (input_date,input_time,input_diarkeia,cost,gipedo_id,"")
+   
+        
+def extract_kratisi_values(idk):   
+    curs.execute("SELECT * FROM `kratisi` WHERE Id='"+idk+"';")
+    res=curs.fetchall()
+    vals=res[0]
+    #datetime,dur,cost,gipedo_id
+    return (vals[1],str(vals[2]),str(vals[3]),str(vals[4]))
+    
 
-     for i in res2:
-         display_kratisi(i)
-
-     idk = input("Εισάγετε το Id της κράτησης που θέλετε να αλλάξει: ")
-     return idk
-
-
- def kratisi_update(idk):
-
-     while True:
-         global curs,con
-         ans = input("Πατήστε 1 για να διαγραφεί η κράτηση, 2 για να γίνει αλλαγή στοιχείων: ")
-         if ans=='1':
-             curs.execute("DELETE FROM `kratisi` WHERE Id='"+idk+"';")
-             con.commit()
-             print("Έγινε η διαγραφή. ")
-         else:        
-             table_for_kratisi(idk)
-             ans = input("Ποιό απο τα στοιχεία θέλετε να αλλάξουν;\n")
-             table_for_kratisi(idk)
-
-             if(ans=='2'):
-                 (input_date,input_time,input_diarkeia,kostos,gipedo_id,selected_gipedo_name)=update_datetime_loop(1,idk)
-                 curs.execute("UPDATE `kratisi` SET Diarkeia='"+input_diarkeia+"' WHERE Id='"+idk+"'")
-                 final_datetime = str(input_date)+" "+str(input_time)
-                 curs.execute("UPDATE `kratisi` SET Imerominia='"+final_datetime+"' WHERE Id='"+idk+"'")
-             if(ans=='1'):
-                 (input_date,input_time,input_diarkeia,kostos,gipedo_id,selected_gipedo_name)=update_datetime_loop(2,idk)
-                 curs.execute("UPDATE `kratisi` SET Id_Gipedou='"+gipedo_id+"' WHERE Id='"+idk+"'")
-             con.commit()
-             print("Έγινε η αλλαγή. ")
-         ans=input("Πατήστε Ν για να εισάγετε κι αλλη κράτηση, άλλο κουμπί για επιστροφή στο αρχικό μενού: ")
-         if(ans!="Ν" or ans!="N" or ans!="n" or ans!="ν"):
-             return
-
-
-
-
-
-
-
- def update_datetime_loop(mode,idk):
-
-     (dt,dur,cost,gipedo_id) = extract_kratisi_values(idk)
-
-     input_date,input_time=dt.strftime("%Y-%m-%d %H:%m").split()
-     input_diarkeia=dur
-
-     if(mode==1):
-         (input_date,input_time,input_diarkeia) = input_time_for_kratisi()
-     if(mode==2):
-         (gipedo_id,selected_gipedo_name) = gipedo_selection()
-
-
-     (check,res)=kratisi_overlap(input_date,input_time,input_diarkeia,gipedo_id)
-     while check==True:
-         print("Δεν μπορεί να γίνει η κράτηση για αυτο ο γήπεδο για αυτήν την ώρα, υπάρχει σύγκρουση με τις εξής κρατήσεις:")
-         for i in res:
-             display_kratisi(i)
-
-         if(mode==1):           
-            print("Επιλέξτε άλλη ώρα/ημερομηνία:")
-            (input_date,input_time,input_diarkeia) = input_time_for_kratisi()
-            cost=str(20*int(dur))
-         if(mode==2):           
-            print("Επιλέξτε άλλο Id γήπεδο")
-            (gipedo_id,selected_gipedo_name) = gipedo_selection()
-
-         (check,res)=kratisi_overlap(input_date,input_time,input_diarkeia,gipedo_id)
-
-     return (input_date,input_time,input_diarkeia,cost,gipedo_id,"")
-
-
- def extract_kratisi_values(idk):   
-     curs.execute("SELECT * FROM `kratisi` WHERE Id='"+idk+"';")
-     res=curs.fetchall()
-     vals=res[0]
-     #datetime,dur,cost,gipedo_id
-     return (vals[1],str(vals[2]),str(vals[3]),str(vals[4]))
-
-
- def table_for_kratisi(idk):
-     (dt,dur,cost,gipedo_id) = extract_kratisi_values(idk)
-     t = PrettyTable(['Επιλογή','Περιγραφή','Τιμή']) 
-     t.add_row([1,"Γήπεδο","id γηπέδου "+str(gipedo_id)])
-     t.add_row([2,"Ημερομηνία/ώρα/διάρκεια",dt.strftime("%Y-%m-%d %H:%m")+" "+str(dur)])
-     print(t)
+def table_for_kratisi(idk):
+    (dt,dur,cost,gipedo_id) = extract_kratisi_values(idk)
+    t = PrettyTable(['Επιλογή','Περιγραφή','Τιμή']) 
+    t.add_row([1,"Γήπεδο","id γηπέδου "+str(gipedo_id)])
+    t.add_row([2,"Ημερομηνία/ώρα/διάρκεια",dt.strftime("%Y-%m-%d %H:%m")+" "+str(dur)])
+    print(t)
 
 
 
