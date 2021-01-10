@@ -566,8 +566,8 @@ def alter_gipedo():
     ids = input('Εισάγετε τα ID των γηπέδων των οποίων θα θέλατε να αλλάξετε την διαθεσημότητα, χωρισμένα ανα κενό:\n').split()
     for i in ids:
         curs.execute("SELECT Texn_Diathesimotita FROM `gipedo` WHERE Id = "+i)
-        old_d=curs.fetchall();
-        new_d = str(int(not old_d[0][0]));
+        old_d=curs.fetchall()
+        new_d = str(int(not old_d[0][0]))
         curs.execute("UPDATE`gipedo` SET Texn_Diathesimotita = '"+new_d+"' WHERE Id = "+i)
     curs.commit()
         
@@ -808,17 +808,16 @@ def tounament_confirm(onoma,im_enarxis,im_lixis,orio_omadon,paiktes_se_omada):
 def show_tournament():
     global curs,con
     t = PrettyTable(['ID','Όνομα','Είδος','Έναρξη','Λήξη','Όριο ομάδων','Έχουν γραφτεί']) 
-    query = " SELECT * FROM tournoua"
+    query = " SELECT tournoua.Id, Onoma, Hm_Enarxis, Hm_Lixis, Orio_Omadon, Paiktes_se_omada, count(omada.Id) as Grammenes FROM `tournoua` INNER JOIN omada ON omada.Id_tournoua = tournoua.Id GROUP BY omada.Id_tournoua"
     eidos = ''
     curs.execute(query)
     results=curs.fetchall()
-    print(results)
     for result in results:
         if (result[5] == 1):
             eidos = "Ατομικό"
         elif (result[5] == 2):
             eidos = "Ομαδικό"
-        t.add_row([result[0],result[1],eidos,result[2],result[3],result[4],"TO BE DONE"])
+        t.add_row([result[0],result[1],eidos,result[2],result[3],result[4],result[6]])
     print(t)
 
     return
@@ -829,46 +828,43 @@ def add_team_in_tournament():
     #Αρχικά πρέπει να βρούμε αν θέλει ατομικό ή ομαδικό τουρνουά
     #Να ελέγχουμε αν μπορεί να γραφτεί στο τουρνουά που θέλει. Γιατί πχ μπορεί να έχει ήδη γίνει η κλήρωση
     print("Ενδιαφέρεται για ατομικό (1) ή ομαδικό (2) τουρνουά")
-    eidos = input("")
-    query = " SELECT * FROM tournoua WHERE paiktes_se_omada='"+eidos+"';"#Να προσθέσω έλεγχο αν μπορεί να γραφτεί
-
+    eidos_noumero = input("")
+    query = "SELECT tournoua.Id, Onoma, Hm_Enarxis, Hm_Lixis, Orio_Omadon, Paiktes_se_omada, count(omada.Id) as Grammenes FROM `tournoua` INNER JOIN omada ON omada.Id_tournoua = tournoua.Id WHERE Paiktes_se_omada = '"+eidos_noumero+"' GROUP BY omada.Id_tournoua  HAVING Orio_Omadon > Grammenes ;"
     curs.execute(query)
     results = curs.fetchall()
+    t = PrettyTable(['ID','Όνομα','Είδος','Έναρξη','Λήξη','Όριο ομάδων','Έχουν γραφτεί']) 
     for result in results:
-        print("----------------------------------")
-        print("ID:",result[0],"'Ονομα:",result[1], "Είδος:",eidos)
-        print("Έναρξη:",result[2],"Λήξη:",result[3])
-        print("Ομάδες που μπορούν να γραφτούν:",result[4])
-        print("Ομάδες που έχουν γραφτεί:","TO BE DONE")
+        if (result[5] == 1):
+            eidos_lektiko = "Ατομικό"
+        elif (result[5] == 2):
+            eidos_lektiko = "Ομαδικό"
+        t.add_row([result[0],result[1],eidos_lektiko,result[2],result[3],result[4],result[6]])
+    print(t)
     selection = input("Επιλέξτε ποιο τουρνουά θέλετε. Αν τελικά δεν είναι κανένα πατήστε το κενό ")
     if (selection == " " or selection == ""):
         return
     elif (selection.isdigit()):#ΘΕΛΕΙ ΔΙΟΡΘΩΣΗ ΓΙΑΤΙ ΑΝ ΒΑΛΕΙΣ ΛΑΘΟΣ ΝΟΥΜΕΡΟ ΓΙΝΕΤΑΙ ΧΑΟΣ
         id_tournoua=selection
-    query = ""
     #Να βρούμε αν είναι ήδη γραμμένος παίκτης. Να βρούμε ποιος είναι και να παίρνουμε το αμκα του
-    if (eidos == "1"):
+    if (eidos_noumero == "1"):
         player_amka_1 = add_player_in_omada()
-        print("Το ΑΜΚΑ του πρώτου παίκτη είναι:",player_amka_1)
         query = "INSERT INTO `omada` (`Id`, `AMKA_1`, `AMKA_2`, `Id_tournoua`) VALUES (NULL, '"+str(player_amka_1)+"', NULL, '"+str(id_tournoua)+"');"
-    elif(eidos == "2"):
+    elif(eidos_noumero == "2"):
         player_amka_1 = add_player_in_omada()
         player_amka_2 = add_player_in_omada()
-        print("Το ΑΜΚΑ του πρώτου παίκτη είναι:",player_amka_1)
-        print("Το ΑΜΚΑ του δεύτερου παίκτη είναι:",player_amka_2)
         query = "INSERT INTO `omada` (`Id`, `AMKA_1`, `AMKA_2`, `Id_tournoua`) VALUES (NULL, '"+str(player_amka_1)+"', '"+str(player_amka_2)+"', '"+str(id_tournoua)+"');"
     curs.execute(query)
     con.commit()#Κάποιο error handling
 
     #Να εκτυπώνει το όνομα του τουρνουά και τα ονόματα των παικτών. 
     #Με λίγο πιο περίπλοκη sql
-    if (eidos == "1"):
+    if (eidos_noumero == "1"):
         query = "SELECT tournoua.onoma, tournoua.Hm_Enarxis, atomo.onoma,atomo.eponimo FROM `omada` INNER JOIN tournoua ON omada.Id_tournoua = tournoua.Id INNER JOIN atomo ON atomo.AMKA = omada.AMKA_1 WHERE AMKA_1 = '"+str(player_amka_1)+"' AND Id_tournoua = '"+str(id_tournoua)+"';"
         curs.execute(query)
         results = curs.fetchall()
         t = PrettyTable(['Ονομα Τουρνουά','Ημ.Εναρξης','Παίκτης ']) 
         t.add_row([results[0][0],results[0][1],results[0][2]+" "+results[0][3]])
-    elif(eidos == "2"):
+    elif(eidos_noumero == "2"):
         query = "SELECT tournoua.onoma, tournoua.Hm_Enarxis, atomo.Onoma, atomo.Eponimo, atomo2.Onoma, atomo2.Eponimo FROM `omada` INNER JOIN tournoua ON omada.Id_tournoua = tournoua.Id INNER JOIN atomo on atomo.AMKA = omada.AMKA_1 INNER JOIN atomo AS atomo2 on atomo2.AMKA = omada.AMKA_2 WHERE AMKA_1 = '"+str(player_amka_1)+"' AND AMKA_2 = '"+str(player_amka_2)+"' AND Id_tournoua = '"+str(id_tournoua)+"';"
         curs.execute(query)
         results = curs.fetchall()
@@ -1190,8 +1186,9 @@ def show_the_person_with(amka):
     print(t)
     return 
 
-            
-            
+def draw_tournament():
+    print("Try")
+    #
 
     
 
