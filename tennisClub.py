@@ -133,7 +133,7 @@ def str_len_check(word_in,mode): #έλεγχος για ΑΜΚΑ (mode 1) τηλ
     return False
     
     
-def str_len_check_loop(msg,mode):
+def str_len_check_loop(msg,mode): #έλεγχος εγκυρότητας για τα δεδομένα
     if(mode==1):
         inp = " AMKA"
     elif (mode==2):
@@ -285,7 +285,7 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
                     print("Ο παίκτης είναι: ")
                     print(results[0][1],results[0][2])
                     inp = input("Σωστό; Ν(αι) ή Ο(χι): ")
-                    if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or engilsh
+                    if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or english
                         amka = results[0][0]
                         onoma = results[0][1]
                         eponymo = results[0][2]
@@ -306,7 +306,7 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
                     print("Ο παίκτης είναι: ")
                     print(results[0][1],results[0][2])
                     inp = input("Σωστό. Ν(αι) ή Ο(χι): ")
-                    if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or engilsh
+                    if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or english
                         amka = results[0][0]
                         onoma = results[0][1]
                         eponymo = results[0][2]
@@ -379,7 +379,7 @@ def kratisi():#Ελεγχος για ΑΜΚΑ τηλ ή Επώνυμο του π
         
       
 
-def kratisi_insert(amka,onoma,eponymo):
+def kratisi_insert(amka,onoma,eponymo): #τελική εισαγωγή κράτησης, επίλυση συγκρούσεων
     global curs,con
 
     (input_date,input_time,input_diarkeia,kostos,gipedo_id,selected_gipedo_name) = kratisi_input(onoma,eponymo)
@@ -390,7 +390,7 @@ def kratisi_insert(amka,onoma,eponymo):
         curs.execute(query)
         con.commit()
         
-def display_kratisi(res):
+def display_kratisi(res): #για καλύτερη εμφάνιση κρατήσεων
     hour=str(res[1].hour)
     minute=str(res[1].minute)
     if(len(hour)==1):
@@ -403,7 +403,7 @@ def display_kratisi(res):
     
 
 
-def kratisi_input(onoma,eponymo):
+def kratisi_input(onoma,eponymo): #συνάρτηση που χειρίζεται δεδομένα εισόδου. γίνεται λουπ μέχρι να δωθεί έγκυρη κράτηση
 
     print("Η κράτηση θα γίνει για : ",onoma,eponymo)
     (input_date,input_time,input_diarkeia) = input_time_for_kratisi()
@@ -423,8 +423,9 @@ def kratisi_input(onoma,eponymo):
             res2 = prog_query_return(4,gipedo_id,input_date,input_time)
         if(ans=='2'):
             res2 = prog_query_return(1,gipedo_id,input_date,"")
-        for i in res2:            
-            display_kratisi(i)
+        if(ans=='2'or ans=='1'):
+            for i in res2:               
+                display_kratisi(i)
 
         mode = input("Πατήστε 1 για να αλλάξετε μόνο την μέρα,ωρα και διάρκεια, 2 μόνο το γήπεδο.\n")
         if(mode=='1'):
@@ -436,7 +437,7 @@ def kratisi_input(onoma,eponymo):
     return (input_date,input_time,input_diarkeia,kostos,gipedo_id,selected_gipedo_name)
 
 
-def input_time_for_kratisi():
+def input_time_for_kratisi(): #συνάρτηση που δέχεται είσοδο για ημερομηνία/ώρα/διάρκεια μιας κράτησης
     
     print("Για πότε θέλετε να γίνει κράτηση;")
     print("Σε μορφή χρονιά-μήνας-ημέρα.")
@@ -447,8 +448,8 @@ def input_time_for_kratisi():
     now = datetime.datetime.now()
     current_time = now.strftime("%H:%M")
     print("Η ώρα πρέπει να είναι σε μορφή ",current_time)
-    input_time = input("Τι ώρα θέλετε; ")# Θα αλλάξει για να γίνεται έλεγχος εγκυρότητας 
-    input_diarkeia = input("Πόσες ώρες; ")#  Θέλει συζήτηση αυτό
+    input_time = input("Τι ώρα θέλετε; ") 
+    input_diarkeia = input("Πόσες ώρες; ")  
     return(input_date,input_time,input_diarkeia)
 
 
@@ -456,6 +457,7 @@ def input_time_for_kratisi():
 
 
 def kratisi_confirm(input_date,input_time,input_diarkeia,kostos,selected_gipedo_id,selected_gipedo_name,onoma,eponymo,final_datetime):
+    #έλεγχος εγκυρότητας κράτησης για τον χρήστη
     print("Η κράτηση θα γίνει για:")
     print("Ονομα",onoma)
     print("Επώνυμο",eponymo)
@@ -474,6 +476,7 @@ def kratisi_confirm(input_date,input_time,input_diarkeia,kostos,selected_gipedo_
 
     
 def gipedo_selection():
+    #επιλογή γηπέδου κατα την διάρκεια δημιουργείας η τροποποποίησης κράτησης
     global curs,con
     print("Αυτά είναι όλα τα διαθέσιμα γήπεδα μας")
     curs.execute("SELECT * FROM `gipedo` WHERE Texn_Diathesimotita = '1'") 
@@ -491,7 +494,7 @@ def gipedo_selection():
 
 
 
-def kratisi_overlap(date_in,time,dur,idn):
+def kratisi_overlap(date_in,time,dur,idn): #έλεγχος σύγκρουσης κρατήσεων
     #dur is in hours
     global curs,con
     start = time[:-3]
@@ -529,7 +532,7 @@ def date_check_for_kratisi(msginput,msgoutput,compare,otherdate):#Ελέγχω �
 
     
 
-def insert_gipedo(): #prosthiki gipedoy
+def insert_gipedo(): #προσθήκη γηπέδου
     global curs,con
     while (True):
         try:
@@ -563,7 +566,7 @@ def view_gipedo(mode): # Αυτό απλώς εκτυπώνει τα γήπεδ�
         print(i)
 
 
-def alter_gipedo():
+def alter_gipedo(): #αλλαγή διαθεσημότητα ενός η πολλών γηπέδων
     global curs,con
     ids = input('Εισάγετε τα ID των γηπέδων των οποίων θα θέλατε να αλλάξετε την διαθεσημότητα, χωρισμένα ανα κενό:\n').split()
     for i in ids:
@@ -778,7 +781,7 @@ def prog_query_return(mode,idn,date,hour): #επιστρέφει τα αποτε
         
        
 
-def programma():
+def programma(): #συνάρτηση που χειρίζεται την εμφάνιση προγράμματος
     global curs,con
     try:
         while (True):
@@ -854,7 +857,7 @@ def create_tournament():#Εδώ δημιουργούμε το τουρνουά
         return
 
 
-def tounament_confirm(onoma,im_enarxis,im_lixis,orio_omadon,paiktes_se_omada):
+def tounament_confirm(onoma,im_enarxis,im_lixis,orio_omadon,paiktes_se_omada): #συνάρτηση για την έγκρηση δημιουργείας ενός τουρνυά (απο τον χρήστη)
     print("Τα στοιχεία του τουρνουά που πάτε να δημιουργήσετε είναι")
     print("Ονομα:",onoma)
     print("Ημερομηνία Έναρξης:",im_enarxis)
@@ -869,7 +872,7 @@ def tounament_confirm(onoma,im_enarxis,im_lixis,orio_omadon,paiktes_se_omada):
         return True
     return False
     
-def show_tournament():
+def show_tournament(): #για την εμφάνιση τουρνουά
     global curs,con
     t = PrettyTable(['ID','Όνομα','Είδος','Έναρξη','Λήξη','Όριο ομάδων','Έχουν γραφτεί']) 
     query = " SELECT tournoua.Id, Onoma, Hm_Enarxis, Hm_Lixis, Orio_Omadon, Paiktes_se_omada, count(omada.Id) as Grammenes FROM `tournoua` INNER JOIN omada ON omada.Id_tournoua = tournoua.Id GROUP BY omada.Id_tournoua"
@@ -907,7 +910,7 @@ def add_team_in_tournament():
     selection = input("Επιλέξτε ποιο τουρνουά θέλετε. Αν τελικά δεν είναι κανένα πατήστε το κενό ")
     if (selection == " " or selection == ""):
         return
-    elif (selection.isdigit()):#ΘΕΛΕΙ ΔΙΟΡΘΩΣΗ ΓΙΑΤΙ ΑΝ ΒΑΛΕΙΣ ΛΑΘΟΣ ΝΟΥΜΕΡΟ ΓΙΝΕΤΑΙ ΧΑΟΣ
+    elif (selection.isdigit()):
         id_tournoua=selection
     #Να βρούμε αν είναι ήδη γραμμένος παίκτης. Να βρούμε ποιος είναι και να παίρνουμε το αμκα του
     if (eidos_noumero == "1"):
@@ -1043,13 +1046,14 @@ def add_player_in_omada():
                     amka = results[int(selection)][0]
                     return amka
         exit
-def change_kratisi():
+        
+def change_kratisi(): #συνάρτηση για την τροποποίηση κρατήσεων. 
     alter_kratisi(1)
 
 
 
 def alter_kratisi(mode):
-    #mode==1 κράτηση ατόμου mode==2 κράτηση γκρουπ mode==3 κράτηση αγώνα
+    #mode==1 κράτηση ατόμου 
     if(mode==1):
         amka=select_apo_stoixeia()
         to_be_altered = find_kratisi_by_atomo(amka)       
@@ -1057,34 +1061,8 @@ def alter_kratisi(mode):
     
 
     
-##def find_kratisi_by_tournament():
-##    print("Αυτά είναι τα Τουρνουά μας:")
-##    show_tournament()
-##    idn = input("Διαλέξτε το Id του γηπέδου που θέλετε να αλλάξουμε: ")
-##    
-##    curs.execute("SELECT * FROM `agonas` WHERE Id_Tournoua='"+idn+"';")
-##    results=curs.fetchall()
-##    
-##    t = PrettyTable(['Id','Score','Id Ομάδας 1','Id Ομάδας 2','Id Τουρνουά']) 
-##    for result in results:
-##        t.add_row([result[0],result[1],result[2],result[3],result[4]])
-##    print(t)
-##    
-##    ida = input("Για ποιόν αγώνα θέλετε να αλλάξετε κράτηση; Εισάγετε το Id του: ")
-##    print("Αυτός ο αγώνας έχει τις εξής κρατήσεις:")
-##    curs.execute("SELECT * FROM `kratisi` WHERE Id_Agona='"+ida+"';")
-##    res2=curs.fetchall()
-## 
-##    for i in res2:
-##        display_kratisi(i)
-##    print(t)
-##
-##    idk = input("Εισάγετε το Id της κράτησης που θέλετε να αλλάξει: ")
-##    return idk
     
-    
-    
-def find_kratisi_by_atomo(amka):
+def find_kratisi_by_atomo(amka): #εύρεση κρατήσεωνγια ένα συγκεκριμένο αμκα
     print("Αυτό το άτομο έχει κάνει τις εξής κρατήσεις: ")
 
     curs.execute("SELECT * FROM `kratisi` WHERE Id_Paikti='"+str(amka)+"';")
@@ -1098,6 +1076,8 @@ def find_kratisi_by_atomo(amka):
     
 
 def kratisi_update(idk):
+    #η συνάρτηση αυτή χειρίζεται την τροποποίηση μια κράτησης που έχει γίνει απο άτομο.
+    #μπαίνει σε λουπ μέχρι να δωθεί έγκυρη κράτηση (αποφυγή συγκρούσεων)
 
     while True:
         global curs,con
@@ -1125,14 +1105,9 @@ def kratisi_update(idk):
         if(ans!="Ν" or ans!="N" or ans!="n" or ans!="ν"):
             return
         
-    
-        
-        
-    
-    
-        
+           
 def update_datetime_loop(mode,idk):
-    
+    #το ίδιο το λουπ. mode = 1 αλλαγή datetime/dur. mode = 2 αλλαγή γηπέδου.
     (dt,dur,cost,gipedo_id) = extract_kratisi_values(idk)
     
     input_date,input_time=dt.strftime("%Y-%m-%d %H:%m").split()
@@ -1171,7 +1146,7 @@ def extract_kratisi_values(idk):
     return (vals[1],str(vals[2]),str(vals[3]),str(vals[4]))
     
 
-def table_for_kratisi(idk):
+def table_for_kratisi(idk): #για ωραιότερη εμφάνιση στην επιλογή τροποποίησης κράτησης
     (dt,dur,cost,gipedo_id) = extract_kratisi_values(idk)
     t = PrettyTable(['Επιλογή','Περιγραφή','Τιμή']) 
     t.add_row([1,"Γήπεδο","id γηπέδου "+str(gipedo_id)])
@@ -1211,7 +1186,7 @@ def select_apo_stoixeia():
                     print("Ο παίκτης είναι: ")
                     print(results[0][1],results[0][2])
                     inp = input("Σωστό; Ν(αι) ή Ο(χι): ")
-                    if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or engilsh
+                    if (inp == "Ν" or inp == "N" or inp == "n" or inp == "ν"):#greek or english
                         amka = results[0][0]
                         return amka
                     else:
