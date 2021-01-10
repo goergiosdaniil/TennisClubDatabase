@@ -603,10 +603,13 @@ def view_group(): # Αυτό απλώς εκτυπώνει τα γήπεδα π�
     
     print("Αυτά είναι όλα τα γγκρούπ μας")
     curs.execute("SELECT * FROM `group_Ekmathisis`")   
-    result=curs.fetchall()
+    results=curs.fetchall()
+    print("Όλα τα γκρουπ")
+    t = PrettyTable(['Όνομα','Επίπεδο','Ημ.Εναρξης','Ημ.Λήξης','ΑΜΚΑ Προπονητή','Ημ και Ώρα Προπονήσεων']) 
+    for result in results:
+        t.add_row([result[1],result[2],result[3],result[4],result[5],"TO BE DONE"])
+    print(t)
 
-    for i in result:
-        print(i)
 
 def insert_group(): #Συνάρτηση για εισαγωγή γκρουπ εκμάθησης στην βάση
     global curs,con
@@ -618,10 +621,47 @@ def insert_group(): #Συνάρτηση για εισαγωγή γκρουπ ε�
             group_im_lixis = valid_date_loop('Να γίνει εισαγωγή της ημερομηνίας λήξης σε μορφή YYYY-MM-DD:\n')
             
             print("Ποιούς απο τους προπονητές θα εκπαιδεύσει το group;")
-            view_atomo(2)
-            AMKA_prop = input('To ΑΜΚΑ του προπονητή:\n')
+            t = PrettyTable(['Επιλογή','Όνομα','Επώνυμο'])
+            curs.execute("SELECT atomo.AMKA,atomo.Onoma,atomo.Eponimo FROM `atomo` WHERE atomo.AMKA IN (SELECT AMKA FROM `proponitis`)")
+            results=curs.fetchall()
+            counter = 0
+            for result in results:
+                t.add_row([counter,result[1],result[2]])
+                counter = counter + 1
+            print(t)
+            num_of_coach = input('To νούμερο του προπονητή:\n')#Να βελτιωθεί
+            AMKA_prop = results[int(num_of_coach)][0]
+            print(AMKA_prop)
+            number_of_prop = input("Πόσες προπονήσεις θα κάνει την εβδομάδα αυτό το γκρουπ: ")
+            insert = "INSERT INTO group_Ekmathisis(Id,Onoma,Epipedo,Hm_Lixis,Hm_Enarxis,AMKA_Proponiti) VALUES(NULL,'"+group_onoma+"','"+group_epipedo+"','"+group_im_enarxis+"','"+group_im_lixis+"','"+str(AMKA_prop)+"');"
+            curs.execute(insert)
+            con.commit()
+            query = "SELECT Id from group_Ekmathisis WHERE Onoma = '"+group_onoma+"' AND Epipedo ='"+group_epipedo+"'    "
+            curs.execute(query)
+            find_id_result=curs.fetchall()
+            group_id = find_id_result[0][0]
+            gipedo_id = 3
+            proponiseis = []
+            for i in range(int(number_of_prop)):
+                print("Ποια ημέρα θέλετε να γίνει η "+str(i+1)+"η προπόνηση; ")
+                imeres("0")
+                imera_prop = input("Επιλέξτε το νούμερο της ημέρας: ")
+                print("Τι ώρα θέλετε να γίνεται η προπόνηση; Σε μορφή 11:00 ")
+                ora = input("")
+                proponiseis.append([group_id,imera_prop,ora,gipedo_id])
+            print("Οι προπονήσεις να γίνονται")
+            t = PrettyTable(['Ημέρα','Ώρα','Γήπεδο'])
+            insert = "INSERT INTO `programma_Group` (`Id_Group`, `Hmera`, `Ora`, `Id_Gipedou`) VALUES"
+            counter = 1
+            for proponisi in proponiseis:
+                insert = insert + " ('"+str(proponisi[0])+"', '"+str(proponisi[1])+"', '"+str(proponisi[2])+"', '"+str(proponisi[3])+"')"
+                if counter < len(proponiseis):
+                    insert = insert + ","
+                counter = counter + 1
+                t.add_row([imeres(proponisi[1]),proponisi[2],proponisi[3]])
+            print(t)
+
             
-            insert = "INSERT INTO group_Ekmathisis(Id,Onoma,Epipedo,Hm_Lixis,Hm_Enarxis,AMKA_Proponiti) VALUES(NULL,'"+group_onoma+"','"+group_epipedo+"','"+group_im_enarxis+"','"+group_im_lixis+"','"+AMKA_prop+"');"
             curs.execute(insert)
             con.commit()
             ans = input('Θες να προσθέσουμε κάποιο άλλο γκρουπ; Αν ναι πατήστε 1, αλλιώς πατήστε κενό και μετά enter για επιστροφή στο αρχικό μενού!\n')
@@ -630,8 +670,39 @@ def insert_group(): #Συνάρτηση για εισαγωγή γκρουπ ε�
                 return
         except:
             print("Αδυναμία προσθήκης γκρούπ!")
+            print(err)
             return
 
+def imeres(day):
+    #Αν είναι 0 επιστρέφει όλες τις ημέρες σε πίνακα
+    #Αν είναι 1-7 επιστρέφει απλώς την λέξη της ημέρας
+    
+    if (day == '0'):
+        table = PrettyTable(['Επιλογή','Ημέρα'])
+        table.add_row([1,"Δευτέρα"])
+        table.add_row([2,"Τρίτη"])
+        table.add_row([3,"Τετάρτη"])
+        table.add_row([4,"Πέμπτη"])
+        table.add_row([5,"Παρασκευή"])
+        table.add_row([6,"Σάββατο"])
+        table.add_row([7,"Κυριακή"])
+        print(table)
+        return
+    elif (day == '1'):
+        return("Δευτέρα")
+    elif (day == '2'):
+        return("Τρίτη")
+    elif (day == '3'):
+        return("Τετάρτη")
+    elif (day == '4'):
+        return("Πέμπτη")
+    elif (day == '5'):
+        return("Παρασκευή")
+    elif (day == '6'):
+        return("Σάββατο")
+    elif (day == '6'):
+        return("Κυραική")
+    exit
 
 
 def programma_on_date(): #εμφανίζει κρατήσεις για συγκεκριμένη ημερομηνία
@@ -730,15 +801,19 @@ def programma():
 def group_menu(): #Ένα γενικό μενου για τις διάφορες ενέργειες που μπορούν να γίνουν πάνω στα γκρουπ
     
     while True:
-        print('Για να δείτε όλα τα γκρούπ πατήστε 1\nΓια να προσθέσετε νέο γκρούπ εκμάθησης πατήστε 2')
+        print("Γκρουπ Εκμάθησης")
+        t = PrettyTable(['Επιλογή','Περιγραφή']) 
+        t.add_row([1,"Δείτε όλα τα γκρουπ"])
+        t.add_row([2,"Προσθέστε νέο γκρουπ εκμάθησης"])
+        print(t)
         ans =input()
-                   
         if ans=='1':
             view_group()
         if ans=='2':
             insert_group()
         if ans==' ':
             return
+
 
 def epipleon_menu(): #Ενα μενού για τις μη συχνές λειτουργίες της εφαρμογής μας
     
@@ -1559,7 +1634,6 @@ def menu(): #Σε αυτό το μενού πρέπει να σχεδιάσου�
 
 def main():#Εδώ μέσα βάζεις όποια συνάρτηση θέλεις να γίνει.
     connect_to_db()
-    #draw_tournament()
     menu()
     con.close()
 
